@@ -30,3 +30,8 @@ android/.externalNativeBuild/
 android/.cxx/
 android/captures/
 
+# Always track distribution folder and apk files within it
+!distrib/
+!distrib/**
+
+

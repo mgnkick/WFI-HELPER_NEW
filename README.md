@@ -16,18 +16,25 @@
 
 ## 🤖 Автоматическая сборка APK на GitHub Actions
 
-В репозитории уже настроен пайплайн CI/CD в каталоге `.github/workflows/`:
-1. **`.github/workflows/build-apk.yml`** — Сборка Android Debug APK:
-   - Автоматически запускается при каждом push или Pull Request в ветки `main` / `master`.
-   - Можно запустить вручную в любой момент во вкладке **Actions** -> **Build Wi-Fi Expert APK** -> кнопка **Run workflow**.
-   - Сохраняет готовый APK в **Artifacts** (доступен для скачивания 30 дней).
-   - При установке тега версии (например, `git tag v1.0.0 && git push origin v1.0.0`) автоматически создает **GitHub Release** и прикрепляет файл APK.
+В репозитории настроен пайплайн CI/CD в каталоге `.github/workflows/`:
+1. **`.github/workflows/build-apk.yml`** — Сборка Android APK:
+   - Автоматически запускается при каждом push или Pull Request в ветки `main` / `master`, а также вручную через вкладку **Actions** -> **Build Wi-Fi Expert APK** -> кнопка **Run workflow**.
+   - **Сразу после сборки готовый `.apk` автоматически сохраняется в папку `distrib/` в корне репозитория** (`distrib/wifi-expert.apk`) и коммитится в ветку.
+   - Также сохраняет APK в **Artifacts** (доступен для скачивания 30 дней).
+   - При установке тега версии (например, `git tag v1.0.0 && git push origin v1.0.0`) автоматически публикует **GitHub Release** с прикрепленным `.apk`.
 2. **`.github/workflows/web-ci.yml`** — Проверка сборки веб-части и типизации TypeScript.
 
-### Как скачать собранный APK:
-1. Перейдите во вкладку **Actions** в вашем репозитории на GitHub.
-2. Выберите последний успешный запуск workflow **Build Wi-Fi Expert APK**.
-3. В нижней части страницы в блоке **Artifacts** нажмите на **wifi-expert-apk**, чтобы скачать архив с готовым `.apk`.
+### ⚙️ Важная настройка прав в репозитории на GitHub:
+Чтобы GitHub Actions мог сохранять собранный APK в папку `distrib/` репозитория:
+1. Зайдите в ваш репозиторий на GitHub.
+2. Перейдите в **Settings** (Настройки) -> слева выберите **Actions** -> **General**.
+3. Прокрутите вниз до раздела **Workflow permissions**.
+4. Выберите переключатель **Read and write permissions** (Права на чтение и запись) и нажмите **Save**.
+
+### Как получить готовый APK:
+- **Прямо из репозитория**: после выполнения Actions откройте папку `distrib/` в корне вашего репозитория на GitHub — там будет лежать `wifi-expert.apk`!
+- **Из вкладки Actions**: во вкладке **Actions** выберите запуск и в блоке **Artifacts** скачайте архив `wifi-expert-apk`.
+- **Локально**: выполните `git pull` после завершения сборки, и файл `distrib/wifi-expert.apk` появится у вас на компьютере.
 
 ---
 
