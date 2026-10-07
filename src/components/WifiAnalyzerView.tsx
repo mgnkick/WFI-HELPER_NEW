@@ -236,12 +236,13 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
       </div>
 
       {/* Верхние 4 карточки параметров текущей сети */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className={`${cardBg} rounded-3xl p-4 relative group`}>
+      <div className="grid grid-cols-2 lg:grid-cols-4 landscape:grid-cols-2 sm:landscape:grid-cols-4 gap-3 sm:gap-4">
+        <div className={`${cardBg} rounded-3xl p-3.5 sm:p-4 relative group`}>
           <div className="flex items-center justify-between text-xs mb-2 opacity-80">
             <span className="flex items-center gap-1.5 font-medium">
               <Signal className="w-4 h-4" />
-              <span>МОЩНОСТЬ (RSSI)</span>
+              <span className="hidden xs:inline">МОЩНОСТЬ</span>
+              <span className="xs:hidden">RSSI</span>
             </span>
             <button
               onClick={() => onOpenTerm('rssi')}
@@ -401,8 +402,8 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
           </div>
         </div>
 
-        <div className={`rounded-2xl border p-4 overflow-x-auto ${isDark ? 'bg-zinc-950/80 border-zinc-800' : 'bg-zinc-50 border-zinc-200'}`}>
-          <div className="min-w-[640px] h-64 relative flex flex-col justify-between">
+        <div className={`rounded-2xl border p-3 sm:p-4 overflow-x-auto ${isDark ? 'bg-zinc-950/80 border-zinc-800' : 'bg-zinc-50 border-zinc-200'}`}>
+          <div className="min-w-[540px] sm:min-w-[640px] h-52 sm:h-64 landscape:h-44 sm:landscape:h-56 relative flex flex-col justify-between">
             <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-30">
               {[-30, -50, -70, -90].map(level => (
                 <div key={level} className="border-b border-slate-700 w-full flex items-center justify-between text-[10px] text-slate-400 pr-2">
@@ -411,7 +412,7 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
               ))}
             </div>
 
-            <svg className="w-full h-48 mt-4 overflow-visible" viewBox="0 0 600 160" preserveAspectRatio="none">
+            <svg className="w-full h-36 sm:h-48 landscape:h-30 sm:landscape:h-40 mt-4 overflow-visible" viewBox="0 0 600 160" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="currentApGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor="#00f2fe" stopOpacity="0.6" />

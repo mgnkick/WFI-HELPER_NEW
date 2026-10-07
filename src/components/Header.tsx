@@ -30,29 +30,29 @@ export const Header: React.FC<HeaderProps> = ({
   const { isDark, toggleTheme } = useTheme();
 
   return (
-    <header className={`sticky top-0 z-40 backdrop-blur-md transition-colors ${
+    <header className={`sticky top-0 z-40 backdrop-blur-md transition-colors w-full ${
       isDark
         ? 'bg-zinc-900/95 border-b border-zinc-800 text-zinc-100'
         : 'bg-white/95 border-b border-zinc-200 text-zinc-900 shadow-sm'
     }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 landscape:py-1.5 transition-all">
         {/* Верхняя строка: Логотип, текущий статус сети и переключатель темы */}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-2 sm:gap-3">
           {/* Бренд */}
-          <div className="flex items-center gap-2.5">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all ${
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className={`w-8 h-8 sm:w-10 sm:h-10 landscape:w-7 landscape:h-7 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 transition-all ${
               isDark
                 ? 'bg-zinc-800 border border-white text-white shadow-md'
                 : 'bg-zinc-900 border border-zinc-900 text-white shadow-md'
             }`}>
-              <Gauge className="w-5 h-5 stroke-[2.5]" />
+              <Gauge className="w-4 h-4 sm:w-5 sm:h-5 landscape:w-3.5 landscape:h-3.5 stroke-[2.5]" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className={`font-black text-base tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className={`font-black text-sm sm:text-base tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                   Wi-Fi Эксперт
                 </span>
-                <span className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded border ${
+                <span className={`text-[9px] sm:text-[10px] font-extrabold uppercase px-1 sm:px-1.5 py-0.5 rounded border ${
                   isDark
                     ? 'border-white/60 text-white bg-white/10'
                     : 'border-zinc-900/60 text-zinc-900 bg-zinc-900/10'
@@ -60,28 +60,28 @@ export const Header: React.FC<HeaderProps> = ({
                   PRO
                 </span>
               </div>
-              <span className={`text-[11px] block -mt-0.5 font-mono ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                Анализатор радиоэфира и диагностика
+              <span className={`text-[10px] sm:text-[11px] block -mt-0.5 font-mono hidden xs:block ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                Анализатор радиоэфира
               </span>
             </div>
           </div>
 
           {/* Правая панель: Текущий Wi-Fi статус и Переключатель темы */}
-          <div className="flex items-center gap-2.5 font-mono text-xs">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 font-mono text-xs">
             {/* Wi-Fi статус */}
-            <div className={`px-3 py-1.5 rounded-xl flex items-center gap-2 border transition-colors ${
+            <div className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl flex items-center gap-1.5 sm:gap-2 border transition-colors ${
               isDark
                 ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300'
                 : 'bg-zinc-50 border-zinc-200 text-zinc-700'
             }`}>
-              <Radio className={`w-3.5 h-3.5 animate-pulse ${isDark ? 'text-white' : 'text-zinc-900'}`} />
-              <span className={`font-bold max-w-[120px] sm:max-w-[180px] truncate ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+              <Radio className={`w-3 h-3 sm:w-3.5 sm:h-3.5 animate-pulse ${isDark ? 'text-white' : 'text-zinc-900'}`} />
+              <span className={`font-bold max-w-[90px] sm:max-w-[180px] truncate text-[11px] sm:text-xs ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                 {currentWifi.ssid || 'Wi-Fi'}
               </span>
-              <span className={`text-[11px] font-semibold ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
+              <span className={`text-[10px] sm:text-[11px] font-semibold hidden sm:inline ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
                 {currentWifi.band}
               </span>
-              <span className={`hidden sm:inline text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              <span className={`hidden md:inline text-[10px] sm:text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                 {currentWifi.rssi} дБм
               </span>
             </div>
@@ -89,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Переключатель светлой/тёмной темы */}
             <button
               onClick={toggleTheme}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 isDark
                   ? 'border border-white text-white hover:bg-white/10 active:scale-95'
                   : 'border border-zinc-900 text-zinc-900 hover:bg-zinc-900/10 active:scale-95'
@@ -100,12 +100,12 @@ export const Header: React.FC<HeaderProps> = ({
               {isDark ? (
                 <>
                   <Sun className="w-3.5 h-3.5 text-white" />
-                  <span className="hidden sm:inline font-sans">Светлая тема</span>
+                  <span className="hidden sm:inline font-sans">Светлая</span>
                 </>
               ) : (
                 <>
                   <Moon className="w-3.5 h-3.5 text-zinc-900" />
-                  <span className="hidden sm:inline font-sans">Тёмная тема</span>
+                  <span className="hidden sm:inline font-sans">Тёмная</span>
                 </>
               )}
             </button>
@@ -113,11 +113,11 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Навигационные вкладки: Анализатор -> Замер скорости -> Рекомендации -> Отчет -> Справочник */}
-        <nav className="flex items-center gap-1.5 sm:gap-2 mt-3 overflow-x-auto pb-1 text-xs font-semibold scrollbar-none">
+        <nav className="flex items-center gap-1 sm:gap-2 mt-2 landscape:mt-1.5 overflow-x-auto pb-1 text-xs font-semibold scrollbar-none w-full">
           {/* 1. Анализатор */}
           <button
             onClick={() => onTabChange('analyzer')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 landscape:py-1 landscape:px-2.5 rounded-xl transition-all whitespace-nowrap cursor-pointer text-xs ${
               activeTab === 'analyzer'
                 ? isDark
                   ? 'bg-white text-zinc-950 font-bold border border-white shadow-md'
@@ -127,14 +127,14 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'border border-zinc-900 text-zinc-900 hover:bg-zinc-900/10'
             }`}
           >
-            <Radio className="w-4 h-4" />
+            <Radio className="w-3.5 h-3.5" />
             <span>Анализатор</span>
           </button>
 
           {/* 2. Замер скорости */}
           <button
             onClick={() => onTabChange('speedtest')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 landscape:py-1 landscape:px-2.5 rounded-xl transition-all whitespace-nowrap cursor-pointer text-xs ${
               activeTab === 'speedtest'
                 ? isDark
                   ? 'bg-white text-zinc-950 font-bold border border-white shadow-md'
@@ -144,14 +144,14 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'border border-zinc-900 text-zinc-900 hover:bg-zinc-900/10'
             }`}
           >
-            <Gauge className="w-4 h-4" />
+            <Gauge className="w-3.5 h-3.5" />
             <span>Замер скорости</span>
           </button>
 
           {/* 3. Рекомендации */}
           <button
             onClick={() => onTabChange('recommendations')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 landscape:py-1 landscape:px-2.5 rounded-xl transition-all whitespace-nowrap cursor-pointer text-xs ${
               activeTab === 'recommendations'
                 ? isDark
                   ? 'bg-white text-zinc-950 font-bold border border-white shadow-md'
@@ -161,14 +161,14 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'border border-zinc-900 text-zinc-900 hover:bg-zinc-900/10'
             }`}
           >
-            <Lightbulb className="w-4 h-4" />
+            <Lightbulb className="w-3.5 h-3.5" />
             <span>Рекомендации</span>
           </button>
 
           {/* 4. Отчет */}
           <button
             onClick={() => onTabChange('report')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 landscape:py-1 landscape:px-2.5 rounded-xl transition-all whitespace-nowrap cursor-pointer text-xs ${
               activeTab === 'report'
                 ? isDark
                   ? 'bg-white text-zinc-950 font-bold border border-white shadow-md'
@@ -178,14 +178,14 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'border border-zinc-900 text-zinc-900 hover:bg-zinc-900/10'
             }`}
           >
-            <FileText className="w-4 h-4" />
+            <FileText className="w-3.5 h-3.5" />
             <span>Отчет</span>
           </button>
 
           {/* 5. Справочник */}
           <button
             onClick={() => onTabChange('knowledge')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 landscape:py-1 landscape:px-2.5 rounded-xl transition-all whitespace-nowrap cursor-pointer text-xs ${
               activeTab === 'knowledge'
                 ? isDark
                   ? 'bg-white text-zinc-950 font-bold border border-white shadow-md'
@@ -195,7 +195,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'border border-zinc-900 text-zinc-900 hover:bg-zinc-900/10'
             }`}
           >
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="w-3.5 h-3.5" />
             <span>Справочник</span>
           </button>
 
@@ -206,7 +206,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenDonate}
             title="Поддержать автора (Сбербанк: 5336 6903 0435 1846)"
-            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-sm ${
+            className={`flex items-center gap-1 px-2.5 py-1.5 landscape:py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-sm ${
               isDark
                 ? 'border border-white text-white hover:bg-white/15 active:scale-95'
                 : 'border border-zinc-900 text-zinc-900 hover:bg-zinc-900/10 active:scale-95'

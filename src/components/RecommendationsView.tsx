@@ -49,7 +49,7 @@ export const RecommendationsView: React.FC<RecommendationsViewProps> = ({ wifi, 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 landscape:grid-cols-2 gap-3 sm:gap-4">
         {/* 2.4 GHz Card */}
         <div className={`${cardBg} rounded-3xl p-5 border ${isDark ? 'border-zinc-700' : 'border-zinc-300'}`}>
           <div className="flex items-center gap-2 mb-3">

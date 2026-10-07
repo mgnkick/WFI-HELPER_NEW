@@ -39,13 +39,13 @@ export const DonateModal: React.FC<DonateModalProps> = ({ isOpen, onClose }) => 
   };
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fadeIn ${
+    <div className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm animate-fadeIn ${
       isDark ? 'bg-black/75' : 'bg-black/40'
     }`}>
       {/* Backdrop click to close */}
       <div className="fixed inset-0" onClick={onClose} />
 
-      <div className={`relative w-full max-w-md ${cardBg} rounded-3xl p-6 shadow-2xl z-10 overflow-hidden transition-colors`}>
+      <div className={`relative w-full max-w-md max-h-[92dvh] overflow-y-auto ${cardBg} rounded-3xl p-4 sm:p-6 shadow-2xl z-10 transition-colors`}>
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-4 relative">
           <div className="flex items-center gap-2.5">

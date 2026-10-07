@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Globe,
   ExternalLink,
@@ -65,6 +65,13 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
     setIsIframeLoading(true);
     setIframeKey(prev => prev + 1);
   };
+
+  // Синхронизация темы со встроенным окном
+  useEffect(() => {
+    try {
+      iframeRef.current?.contentWindow?.postMessage({ theme: isDark ? 'dark' : 'light' }, '*');
+    } catch (e) {}
+  }, [isDark, iframeKey]);
 
   // Полноэкранный режим
   const handleOpenFullscreen = async () => {
@@ -215,7 +222,7 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
         </div>
 
         {/* Область самого встроенного окна */}
-        <div className={`relative w-full min-h-[580px] sm:min-h-[680px] flex-1 ${isDark ? 'bg-zinc-950' : 'bg-zinc-100'}`}>
+        <div className={`relative w-full h-[60vh] min-h-[380px] max-h-[720px] landscape:h-[72vh] landscape:min-h-[290px] flex-1 overflow-hidden ${isDark ? 'bg-zinc-950' : 'bg-zinc-100'}`}>
           {isIframeLoading && (
             <div className={`absolute inset-0 z-10 backdrop-blur-sm flex flex-col items-center justify-center gap-3 ${
               isDark ? 'bg-zinc-950/80 text-zinc-300' : 'bg-white/80 text-zinc-700'
@@ -229,10 +236,16 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
           <iframe
             key={iframeKey}
             ref={iframeRef}
-            src="/api/yandex-meter"
+            name="yandex_meter_frame"
+            src="/yandex-meter.html"
             title="Яндекс Интернетометр"
-            className="w-full h-[580px] sm:h-[680px] border-0 bg-white"
-            onLoad={() => setIsIframeLoading(false)}
+            className="w-full h-full border-0 bg-transparent"
+            onLoad={() => {
+              setIsIframeLoading(false);
+              try {
+                iframeRef.current?.contentWindow?.postMessage({ theme: isDark ? 'dark' : 'light' }, '*');
+              } catch (e) {}
+            }}
             allow="fullscreen; clipboard-read; clipboard-write"
           />
         </div>
@@ -486,9 +499,10 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
               </button>
             </div>
           </div>
-          <div className="flex-1 w-full bg-white">
+          <div className="flex-1 w-full bg-transparent">
             <iframe
-              src="/api/yandex-meter"
+              name="yandex_meter_frame"
+              src="/yandex-meter.html"
               title="Яндекс Интернетометр - Полноэкранный режим"
               className="w-full h-full border-0"
               allow="fullscreen; clipboard-read; clipboard-write"

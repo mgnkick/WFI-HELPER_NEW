@@ -16,10 +16,10 @@ export const TermExplainerModal: React.FC<TermExplainerModalProps> = ({ termId, 
   const item = TERMS_KNOWLEDGE.find(t => t.id === termId) || TERMS_KNOWLEDGE[0];
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in ${
+    <div className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm animate-fade-in ${
       isDark ? 'bg-black/75' : 'bg-black/40'
     }`}>
-      <div className={`${cardBg} rounded-3xl max-w-lg w-full p-6 shadow-2xl relative transition-colors`}>
+      <div className={`${cardBg} rounded-3xl max-w-lg w-full max-h-[92dvh] overflow-y-auto p-4 sm:p-6 shadow-2xl relative transition-colors`}>
         <button
           onClick={onClose}
           className={`absolute top-5 right-5 ${btnOutlineSm}`}

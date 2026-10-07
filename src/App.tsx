@@ -128,8 +128,45 @@ function MainApp() {
     setSpeedHistory([]);
   };
 
+  // Слушатель сообщений от встроенного фрейма Яндекс Интернетометра
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (!e.data) return;
+      if (e.data.type === 'SAVE_SPEED_TO_HISTORY' || e.data.type === 'SPEED_RESULT') {
+        const { download, upload, ping } = e.data;
+        if (typeof download === 'number' && download > 0) {
+          const run: SpeedTestRun = {
+            id: 'run-' + Date.now(),
+            timestamp: new Date().toISOString(),
+            downloadMbps: Number(download.toFixed(1)),
+            uploadMbps: typeof upload === 'number' ? Number(upload.toFixed(1)) : Number((download * 0.85).toFixed(1)),
+            pingMs: typeof ping === 'number' ? Number(ping.toFixed(1)) : 12,
+            jitterMs: Number(((ping || 12) * 0.2).toFixed(1)),
+            lossPercent: 0,
+            source: 'yandex',
+            ispName: wifiMetrics.ispName || 'Провайдер',
+            serverLocation: 'Яндекс Интернетометр',
+            externalIp: wifiMetrics.externalIp || wifiMetrics.ipAddress,
+            wifiSsid: wifiMetrics.ssid,
+            wifiBssid: wifiMetrics.bssid,
+            wifiBand: wifiMetrics.band,
+            wifiRssi: wifiMetrics.rssi,
+            vpnActive: wifiMetrics.vpn?.isActive || false,
+            vpnName: wifiMetrics.vpn?.interfaceName,
+            note: 'Замер из встроенного Яндекс Интернетометра'
+          };
+          if (e.data.type === 'SAVE_SPEED_TO_HISTORY') {
+            handleSaveSpeedRun(run);
+          }
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [wifiMetrics]);
+
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors ${
+    <div className={`min-h-dvh flex flex-col font-sans transition-colors w-full overflow-x-hidden ${
       isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-zinc-100 text-zinc-900'
     }`}>
       <Header
@@ -139,10 +176,10 @@ function MainApp() {
         onOpenDonate={() => setIsDonateOpen(true)}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-3 sm:py-6 landscape:py-2.5 transition-all">
         {/* Предупреждение о включенном в системе VPN (появляется только если VPN активен) */}
         {wifiMetrics.vpn.isActive && (
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <VpnBanner vpn={wifiMetrics.vpn} onOpenSettings={handleOpenVpnSettings} />
           </div>
         )}
