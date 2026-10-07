@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Globe,
-  Radio,
   ExternalLink,
   Trash2,
   History,
@@ -9,10 +8,8 @@ import {
   Maximize2,
   Minimize2,
   ShieldCheck,
-  AlertTriangle,
   Zap,
   PlusCircle,
-  CheckCircle2,
   X
 } from 'lucide-react';
 import { CurrentWifiMetrics, SpeedTestRun } from '../types/wifi';
@@ -20,6 +17,7 @@ import { WifiAccuracyDisclaimer } from './WifiAccuracyDisclaimer';
 import { SignalValue } from './SignalValue';
 import { Capacitor } from '@capacitor/core';
 import { WifiHelper } from '../plugins/wifiHelper';
+import { useTheme } from '../context/ThemeContext';
 
 interface SpeedtestDashboardProps {
   wifi: CurrentWifiMetrics;
@@ -33,11 +31,11 @@ interface SpeedtestDashboardProps {
 export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
   wifi,
   history,
-  onOpenTerm,
   onSaveSpeedRun,
   onClearHistory,
-  onOpenVpnSettings
 }) => {
+  const { isDark, cardBg, cardSubtle, btnOutline, btnOutlineSm, btnActive, inputClass } = useTheme();
+
   // Ключ для принудительной перезагрузки встроенного фрейма
   const [iframeKey, setIframeKey] = useState<number>(1);
   const [isIframeLoading, setIsIframeLoading] = useState<boolean>(true);
@@ -68,7 +66,7 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
     setIframeKey(prev => prev + 1);
   };
 
-  // Полноэкранный режим: на Android открываем нативный диалог WebView, в вебе — модальное окно
+  // Полноэкранный режим
   const handleOpenFullscreen = async () => {
     if (Capacitor.isNativePlatform()) {
       try {
@@ -121,15 +119,15 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. Блок верхних отдельных кнопок внешних ссылок (Яндекс и 2IP) */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg backdrop-blur">
+      <div className={`${cardBg} rounded-3xl p-5 sm:p-6 transition-colors`}>
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Zap className="w-5 h-5 text-amber-400" />
+            <h2 className={`text-lg font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+              <Zap className="w-5 h-5" />
               Внешние сервисы замера скорости
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-              Отдельные ссылки для открытия официальных страниц в браузере или приложении
+            <p className={`text-xs sm:text-sm mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              Отдельные кнопки для открытия официальных сайтов в браузере
             </p>
           </div>
 
@@ -137,47 +135,57 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
             {/* Кнопка 1: Яндекс Интернетометр */}
             <button
               onClick={handleOpenYandexExternal}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 font-semibold text-xs sm:text-sm transition-all shadow-sm hover:shadow-amber-500/10 active:scale-95 cursor-pointer"
+              className={`${btnOutline} flex-1 sm:flex-initial`}
               title="Открыть Яндекс Интернетометр в браузере"
             >
-              <Globe className="w-4 h-4 text-amber-400" />
+              <Globe className="w-4 h-4" />
               <span>Яндекс Интернетометр</span>
-              <ExternalLink className="w-3.5 h-3.5 text-amber-400/80" />
+              <ExternalLink className="w-3.5 h-3.5 opacity-80" />
             </button>
 
             {/* Кнопка 2: 2IP.ru Замер скорости */}
             <button
               onClick={handleOpen2ipExternal}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 font-semibold text-xs sm:text-sm transition-all shadow-sm hover:shadow-sky-500/10 active:scale-95 cursor-pointer"
+              className={`${btnOutline} flex-1 sm:flex-initial`}
               title="Открыть 2IP.ru в браузере"
             >
-              <Globe className="w-4 h-4 text-sky-400" />
+              <Globe className="w-4 h-4" />
               <span>2ip.ru Замер скорости</span>
-              <ExternalLink className="w-3.5 h-3.5 text-sky-400/80" />
+              <ExternalLink className="w-3.5 h-3.5 opacity-80" />
             </button>
           </div>
         </div>
       </div>
 
       {/* 2. Основное встроенное окно Яндекс Интернетометра */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+      <div className={`${cardBg} rounded-3xl overflow-hidden flex flex-col transition-colors`}>
         {/* Панель заголовка встроенного окна */}
-        <div className="bg-slate-950/90 border-b border-slate-800 px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+        <div className={`px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3 border-b ${
+          isDark ? 'bg-zinc-950/80 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
+        }`}>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-sm">
+            <div className={`w-8 h-8 rounded-xl border flex items-center justify-center font-bold text-sm ${
+              isDark
+                ? 'bg-zinc-800 border-white text-white'
+                : 'bg-zinc-900 border-zinc-900 text-white'
+            }`}>
               Я
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-white text-sm sm:text-base">
+                <span className={`font-bold text-sm sm:text-base ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                   Яндекс Интернетометр
                 </span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className={`inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full border ${
+                  isDark
+                    ? 'border-white/50 text-white bg-white/10'
+                    : 'border-zinc-900/50 text-zinc-900 bg-zinc-900/10'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isDark ? 'bg-white' : 'bg-zinc-900'}`} />
                   Встроено в приложение
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 hidden sm:block">
+              <p className={`text-[11px] hidden sm:block ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                 Замер скорости, внешний IP-адрес, браузер и разрешение экрана
               </p>
             </div>
@@ -187,32 +195,34 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
             {/* Кнопка обновления окна */}
             <button
               onClick={handleReloadIframe}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition cursor-pointer"
+              className={btnOutlineSm}
               title="Перезагрузить встроенное окно"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isIframeLoading ? 'animate-spin text-cyan-400' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isIframeLoading ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Обновить</span>
             </button>
 
             {/* Кнопка развертывания на весь экран */}
             <button
               onClick={handleOpenFullscreen}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 text-xs font-medium transition cursor-pointer"
+              className={btnOutlineSm}
               title="Развернуть окно на весь экран"
             >
-              <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
+              <Maximize2 className="w-3.5 h-3.5" />
               <span>Во весь экран</span>
             </button>
           </div>
         </div>
 
-        {/* Область самого встроенного окна (iframe через локальный прокси без X-Frame-Options ограничений) */}
-        <div className="relative w-full bg-slate-950 min-h-[580px] sm:min-h-[680px] flex-1">
+        {/* Область самого встроенного окна */}
+        <div className={`relative w-full min-h-[580px] sm:min-h-[680px] flex-1 ${isDark ? 'bg-zinc-950' : 'bg-zinc-100'}`}>
           {isIframeLoading && (
-            <div className="absolute inset-0 z-10 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3 text-slate-300">
-              <RefreshCw className="w-8 h-8 text-amber-400 animate-spin" />
+            <div className={`absolute inset-0 z-10 backdrop-blur-sm flex flex-col items-center justify-center gap-3 ${
+              isDark ? 'bg-zinc-950/80 text-zinc-300' : 'bg-white/80 text-zinc-700'
+            }`}>
+              <RefreshCw className="w-8 h-8 animate-spin" />
               <p className="text-sm font-medium">Загрузка Яндекс Интернетометра...</p>
-              <p className="text-xs text-slate-500 font-mono">Подключение безопасного фрейма</p>
+              <p className="text-xs font-mono opacity-70">Подключение безопасного фрейма</p>
             </div>
           )}
 
@@ -227,48 +237,52 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
           />
         </div>
 
-        {/* Подвал встроенного окна с полезными быстрыми действиями */}
-        <div className="bg-slate-950 border-t border-slate-800/80 px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+        {/* Подвал встроенного окна */}
+        <div className={`px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3 text-xs border-t ${
+          isDark
+            ? 'bg-zinc-950/90 border-zinc-800 text-zinc-400'
+            : 'bg-zinc-50 border-zinc-200 text-zinc-600'
+        }`}>
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <ShieldCheck className="w-4 h-4" />
             <span>Окно работает напрямую с серверами Яндекса через безопасный туннель</span>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowSaveForm(!showSaveForm)}
-              className="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 font-medium cursor-pointer"
+              className={btnOutlineSm}
             >
-              <PlusCircle className="w-4 h-4" />
+              <PlusCircle className="w-3.5 h-3.5" />
               <span>{showSaveForm ? 'Скрыть форму записи' : 'Зафиксировать замер в истории'}</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Форма быстрой фиксации замеров из Интернетометра в локальную историю */}
+      {/* Форма быстрой фиксации замеров */}
       {showSaveForm && (
         <form
           onSubmit={handleSaveResult}
-          className="bg-slate-900 border border-cyan-500/30 rounded-2xl p-5 shadow-xl space-y-4 animate-in fade-in slide-in-from-top-2"
+          className={`${cardBg} rounded-3xl p-5 sm:p-6 space-y-4`}
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <PlusCircle className="w-4 h-4 text-cyan-400" />
+            <h3 className={`text-sm font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+              <PlusCircle className="w-4 h-4" />
               Сохранить результат замера из Интернетометра в историю
             </h3>
             <button
               type="button"
               onClick={() => setShowSaveForm(false)}
-              className="text-slate-400 hover:text-white p-1"
+              className={btnOutlineSm}
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-mono text-slate-400 mb-1">
+              <label className={`block text-xs font-mono mb-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                 Входящее (Мбит/с) *
               </label>
               <input
@@ -279,11 +293,11 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
                 placeholder="напр. 85.4"
                 value={downInput}
                 onChange={e => setDownInput(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-sm focus:border-cyan-500 outline-none font-mono"
+                className={`w-full rounded-xl px-3 py-2 text-sm font-mono ${inputClass}`}
               />
             </div>
             <div>
-              <label className="block text-xs font-mono text-slate-400 mb-1">
+              <label className={`block text-xs font-mono mb-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                 Исходящее (Мбит/с)
               </label>
               <input
@@ -293,11 +307,11 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
                 placeholder="напр. 78.1"
                 value={upInput}
                 onChange={e => setUpInput(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-sm focus:border-cyan-500 outline-none font-mono"
+                className={`w-full rounded-xl px-3 py-2 text-sm font-mono ${inputClass}`}
               />
             </div>
             <div>
-              <label className="block text-xs font-mono text-slate-400 mb-1">
+              <label className={`block text-xs font-mono mb-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                 Задержка / Пинг (мс)
               </label>
               <input
@@ -307,13 +321,13 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
                 placeholder="напр. 14.5"
                 value={pingInput}
                 onChange={e => setPingInput(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-sm focus:border-cyan-500 outline-none font-mono"
+                className={`w-full rounded-xl px-3 py-2 text-sm font-mono ${inputClass}`}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-mono text-slate-400 mb-1">
+            <label className={`block text-xs font-mono mb-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
               Примечание (комната, условия, устройство)
             </label>
             <input
@@ -321,7 +335,7 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
               placeholder="напр. Замер в спальне возле окна, диапазон 5 ГГц"
               value={noteInput}
               onChange={e => setNoteInput(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-sm focus:border-cyan-500 outline-none"
+              className={`w-full rounded-xl px-3 py-2 text-sm ${inputClass}`}
             />
           </div>
 
@@ -329,13 +343,13 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
             <button
               type="button"
               onClick={() => setShowSaveForm(false)}
-              className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-semibold cursor-pointer"
+              className={btnOutline}
             >
               Отмена
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-md shadow-cyan-500/20 cursor-pointer"
+              className={btnActive}
             >
               Сохранить в историю
             </button>
@@ -344,49 +358,49 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
       )}
 
       {/* 3. Предупреждение о точности беспроводных замеров */}
-      <WifiAccuracyDisclaimer
-        currentBand={wifi.band}
-      />
+      <WifiAccuracyDisclaimer currentBand={wifi.band} />
 
       {/* 4. Текущие параметры Wi-Fi канала */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5">
-        <h3 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider mb-3">
+      <div className={`${cardBg} rounded-3xl p-5 sm:p-6`}>
+        <h3 className={`text-xs font-mono font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
           Параметры текущей сети Wi-Fi
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-3">
-            <span className="text-slate-500 block mb-1">Сеть (SSID)</span>
-            <span className="font-bold text-white truncate block">{wifi.ssid || 'Wi-Fi'}</span>
+          <div className={`${cardSubtle} rounded-2xl p-3`}>
+            <span className={`block mb-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Сеть (SSID)</span>
+            <span className={`font-bold truncate block ${isDark ? 'text-white' : 'text-zinc-900'}`}>{wifi.ssid || 'Wi-Fi'}</span>
           </div>
-          <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-3">
-            <span className="text-slate-500 block mb-1">Диапазон</span>
-            <span className="font-bold text-cyan-400">{wifi.band} (канал {wifi.channel})</span>
+          <div className={`${cardSubtle} rounded-2xl p-3`}>
+            <span className={`block mb-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Диапазон</span>
+            <span className={`font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>{wifi.band} (канал {wifi.channel})</span>
           </div>
-          <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-3">
-            <span className="text-slate-500 block mb-1">Скорость линка (радио)</span>
-            <span className="font-mono font-bold text-emerald-400">{wifi.linkSpeedTxMbps} Мбит/с</span>
+          <div className={`${cardSubtle} rounded-2xl p-3`}>
+            <span className={`block mb-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Скорость линка (радио)</span>
+            <span className={`font-mono font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>{wifi.linkSpeedTxMbps} Мбит/с</span>
           </div>
-          <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-3">
-            <span className="text-slate-500 block mb-1">Сигнал (RSSI)</span>
+          <div className={`${cardSubtle} rounded-2xl p-3`}>
+            <span className={`block mb-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Сигнал (RSSI)</span>
             <SignalValue rssi={wifi.rssi} percent={wifi.signalPercent} />
           </div>
         </div>
       </div>
 
       {/* 5. История замеров */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+      <div className={`${cardBg} rounded-3xl p-5 sm:p-6`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <History className="w-5 h-5 text-cyan-400" />
-            <h3 className="text-base font-bold text-white">История замеров</h3>
-            <span className="text-xs font-mono text-slate-400 px-2 py-0.5 rounded-full bg-slate-800">
+            <History className="w-5 h-5" />
+            <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>История замеров</h3>
+            <span className={`text-xs font-mono px-2 py-0.5 rounded-full border ${
+              isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-300' : 'bg-zinc-100 border-zinc-300 text-zinc-700'
+            }`}>
               {history.length}
             </span>
           </div>
           {history.length > 0 && (
             <button
               onClick={onClearHistory}
-              className="inline-flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 transition cursor-pointer"
+              className={btnOutlineSm}
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Очистить историю</span>
@@ -395,8 +409,10 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
         </div>
 
         {history.length === 0 ? (
-          <div className="text-center py-8 border border-dashed border-slate-800 rounded-xl text-slate-500 text-xs sm:text-sm">
-            <History className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+          <div className={`text-center py-8 border border-dashed rounded-2xl text-xs sm:text-sm ${
+            isDark ? 'border-zinc-800 text-zinc-500' : 'border-zinc-300 text-zinc-500'
+          }`}>
+            <History className="w-8 h-8 opacity-40 mx-auto mb-2" />
             История замеров чистая.
             <br />
             Выполните замер во встроенном окне Яндекс Интернетометра и сохраните результат для отчета.
@@ -405,7 +421,7 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-800 text-slate-400 font-mono">
+                <tr className={`border-b font-mono ${isDark ? 'border-zinc-800 text-zinc-400' : 'border-zinc-200 text-zinc-600'}`}>
                   <th className="pb-2">Время</th>
                   <th className="pb-2">Источник</th>
                   <th className="pb-2 text-right">Входящая</th>
@@ -414,25 +430,25 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
                   <th className="pb-2">Примечание</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-mono">
+              <tbody className={`divide-y font-mono ${isDark ? 'divide-zinc-800' : 'divide-zinc-200'}`}>
                 {history.map(run => (
-                  <tr key={run.id} className="hover:bg-slate-800/30">
-                    <td className="py-2.5 text-slate-400">
+                  <tr key={run.id} className={isDark ? 'hover:bg-zinc-800/40' : 'hover:bg-zinc-50'}>
+                    <td className={`py-2.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                       {new Date(run.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </td>
-                    <td className="py-2.5 text-white font-medium">
+                    <td className={`py-2.5 font-medium ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                       {run.source === 'yandex' ? 'Яндекс Интернетометр' : run.source === '2ip' ? '2IP.ru' : 'Тест сети'}
                     </td>
-                    <td className="py-2.5 text-right font-bold text-cyan-400">
+                    <td className={`py-2.5 text-right font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                       {run.downloadMbps} Мбит/с
                     </td>
-                    <td className="py-2.5 text-right text-emerald-400">
+                    <td className={`py-2.5 text-right ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
                       {run.uploadMbps} Мбит/с
                     </td>
-                    <td className="py-2.5 text-right text-slate-300">
+                    <td className={`py-2.5 text-right ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                       {run.pingMs} мс
                     </td>
-                    <td className="py-2.5 text-slate-400 italic font-sans max-w-[200px] truncate">
+                    <td className={`py-2.5 italic font-sans max-w-[200px] truncate ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                       {run.note || '—'}
                     </td>
                   </tr>
@@ -443,26 +459,27 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
         )}
       </div>
 
-      {/* Полноэкранный модальный режим для веб-версии */}
+      {/* Полноэкранный модальный режим */}
       {isFullscreenModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col animate-in fade-in">
-          <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+        <div className={`fixed inset-0 z-50 flex flex-col ${isDark ? 'bg-zinc-950/95' : 'bg-zinc-100/95'} backdrop-blur-md`}>
+          <div className={`px-4 py-3 flex items-center justify-between border-b ${
+            isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'
+          }`}>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-amber-400" />
-              <span className="font-bold text-white text-sm sm:text-base">
+              <span className={`font-bold text-sm sm:text-base ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                 Яндекс Интернетометр (Полноэкранный режим)
               </span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleReloadIframe}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white text-xs font-medium cursor-pointer"
+                className={btnOutlineSm}
               >
                 Обновить
               </button>
               <button
                 onClick={() => setIsFullscreenModal(false)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 text-xs font-semibold cursor-pointer"
+                className={btnOutlineSm}
               >
                 <Minimize2 className="w-4 h-4" />
                 <span>Свернуть</span>

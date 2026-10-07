@@ -3,6 +3,7 @@ import { Lightbulb, Radio, Sparkles, AlertTriangle, Info } from 'lucide-react';
 import { AccessPoint, CurrentWifiMetrics } from '../types/wifi';
 import { buildRecommendations, score24GHz, score5GHz } from '../utils/channelAdvice';
 import { SignalValue } from './SignalValue';
+import { useTheme } from '../context/ThemeContext';
 
 interface RecommendationsViewProps {
   wifi: CurrentWifiMetrics;
@@ -10,6 +11,8 @@ interface RecommendationsViewProps {
 }
 
 export const RecommendationsView: React.FC<RecommendationsViewProps> = ({ wifi, visibleAps }) => {
+  const { isDark, cardBg, cardSubtle } = useTheme();
+
   const scores24 = score24GHz(visibleAps);
   const scores5 = score5GHz(visibleAps);
   const advice = buildRecommendations(wifi, visibleAps);
@@ -21,22 +24,24 @@ export const RecommendationsView: React.FC<RecommendationsViewProps> = ({ wifi, 
 
   return (
     <div className="space-y-6">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+      <div className={`${cardBg} rounded-3xl p-6 transition-colors`}>
         <div className="flex items-start gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+          <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center flex-shrink-0 ${
+            isDark ? 'bg-zinc-800 border-white text-white' : 'bg-zinc-900 border-zinc-900 text-white'
+          }`}>
             <Lightbulb className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs uppercase font-bold tracking-wider text-cyan-400">
+            <span className={`text-xs uppercase font-bold tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
               Рекомендации WiFi-Helper
             </span>
-            <h3 className="text-xl font-bold text-white mt-0.5">
+            <h3 className={`text-xl font-bold mt-0.5 ${isDark ? 'text-white' : 'text-zinc-900'}`}>
               Свободные каналы и советы по эфиру
             </h3>
-            <p className="text-xs text-slate-400 mt-2">
+            <p className={`text-xs mt-2 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
               Список строится по текущему скану сетей. Самый свободный канал — с наименьшей суммой помех (учитываются пересечения и сила соседних сигналов).
             </p>
-            <div className="text-xs text-slate-400 mt-2 font-mono">
+            <div className={`text-xs mt-2 font-mono ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
               Сейчас: {wifi.ssid} · {wifi.band} · канал {wifi.channel} · сигнал{' '}
               <SignalValue rssi={wifi.rssi} percent={wifi.signalPercent} />
             </div>
@@ -45,27 +50,28 @@ export const RecommendationsView: React.FC<RecommendationsViewProps> = ({ wifi, 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-slate-900 border border-cyan-500/30 rounded-3xl p-5">
+        {/* 2.4 GHz Card */}
+        <div className={`${cardBg} rounded-3xl p-5 border ${isDark ? 'border-zinc-700' : 'border-zinc-300'}`}>
           <div className="flex items-center gap-2 mb-3">
-            <Radio className="w-5 h-5 text-cyan-400" />
-            <h4 className="font-bold text-white">2.4 ГГц — самый свободный канал</h4>
+            <Radio className="w-5 h-5" />
+            <h4 className={`font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>2.4 ГГц — самый свободный канал</h4>
           </div>
-          <div className="text-4xl font-black text-cyan-300 font-mono">{best24.channel}</div>
-          <p className="text-xs text-slate-400 mt-1">
+          <div className={`text-4xl font-black font-mono ${isDark ? 'text-white' : 'text-zinc-900'}`}>{best24.channel}</div>
+          <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
             {best24.frequency} МГц · пересечений: {best24.apCount}
           </p>
           <div className="mt-4 space-y-2">
             {scores24.map(s => (
               <div key={s.channel}>
-                <div className="flex justify-between text-[11px] font-mono text-slate-400 mb-1">
-                  <span className={s.channel === best24.channel ? 'text-cyan-300 font-bold' : ''}>
+                <div className={`flex justify-between text-[11px] font-mono mb-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                  <span className={s.channel === best24.channel ? `font-bold ${isDark ? 'text-white' : 'text-zinc-900'}` : ''}>
                     Канал {s.channel}
                   </span>
                   <span>{s.apCount} сетей</span>
                 </div>
-                <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div className={`h-2 rounded-full overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-200'}`}>
                   <div
-                    className={`h-full ${s.channel === best24.channel ? 'bg-emerald-400' : 'bg-amber-500'}`}
+                    className={`h-full ${s.channel === best24.channel ? (isDark ? 'bg-white' : 'bg-zinc-900') : (isDark ? 'bg-zinc-600' : 'bg-zinc-400')}`}
                     style={{ width: `${Math.max(8, (s.score / max24) * 100)}%` }}
                   />
                 </div>
@@ -74,27 +80,28 @@ export const RecommendationsView: React.FC<RecommendationsViewProps> = ({ wifi, 
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-emerald-500/30 rounded-3xl p-5">
+        {/* 5 GHz Card */}
+        <div className={`${cardBg} rounded-3xl p-5 border ${isDark ? 'border-zinc-700' : 'border-zinc-300'}`}>
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-5 h-5 text-emerald-400" />
-            <h4 className="font-bold text-white">5 ГГц — самый свободный канал</h4>
+            <Sparkles className="w-5 h-5" />
+            <h4 className={`font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>5 ГГц — самый свободный канал</h4>
           </div>
-          <div className="text-4xl font-black text-emerald-300 font-mono">{best5.channel}</div>
-          <p className="text-xs text-slate-400 mt-1">
+          <div className={`text-4xl font-black font-mono ${isDark ? 'text-white' : 'text-zinc-900'}`}>{best5.channel}</div>
+          <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
             {best5.frequency} МГц · пересечений: {best5.apCount}
           </p>
           <div className="mt-4 space-y-2">
             {scores5.map(s => (
               <div key={s.channel}>
-                <div className="flex justify-between text-[11px] font-mono text-slate-400 mb-1">
-                  <span className={s.channel === best5.channel ? 'text-emerald-300 font-bold' : ''}>
+                <div className={`flex justify-between text-[11px] font-mono mb-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                  <span className={s.channel === best5.channel ? `font-bold ${isDark ? 'text-white' : 'text-zinc-900'}` : ''}>
                     Канал {s.channel}
                   </span>
                   <span>{s.apCount} сетей</span>
                 </div>
-                <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div className={`h-2 rounded-full overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-200'}`}>
                   <div
-                    className={`h-full ${s.channel === best5.channel ? 'bg-emerald-400' : 'bg-slate-500'}`}
+                    className={`h-full ${s.channel === best5.channel ? (isDark ? 'bg-white' : 'bg-zinc-900') : (isDark ? 'bg-zinc-600' : 'bg-zinc-400')}`}
                     style={{ width: `${Math.max(8, (s.score / max5) * 100)}%` }}
                   />
                 </div>
@@ -105,27 +112,27 @@ export const RecommendationsView: React.FC<RecommendationsViewProps> = ({ wifi, 
       </div>
 
       <div className="space-y-3">
-        <h4 className="text-sm font-bold text-white">Все рекомендации</h4>
+        <h4 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>Все рекомендации</h4>
         {advice.map(item => (
           <div
             key={item.id}
             className={`rounded-2xl border p-4 ${
               item.priority === 'high'
-                ? 'bg-amber-950/30 border-amber-500/40'
-                : item.priority === 'medium'
-                  ? 'bg-slate-900 border-cyan-500/20'
-                  : 'bg-slate-900 border-slate-800'
+                ? isDark
+                  ? 'bg-amber-950/30 border-amber-500/40'
+                  : 'bg-amber-50 border-amber-300'
+                : cardSubtle
             }`}
           >
-            <div className="flex items-start gap-2">
+            <div className="flex items-start gap-2.5">
               {item.priority === 'high' ? (
-                <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
               ) : (
-                <Info className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                <Info className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`} />
               )}
               <div>
-                <h5 className="text-sm font-bold text-white">{item.title}</h5>
-                <p className="text-xs text-slate-300 mt-1 leading-relaxed">{item.detail}</p>
+                <h5 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>{item.title}</h5>
+                <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>{item.detail}</p>
               </div>
             </div>
           </div>

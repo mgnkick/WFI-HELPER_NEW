@@ -22,6 +22,7 @@ import {
   jitterCurrentWifi,
   mergeNativeIntoWifi
 } from './services/wifiScan';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 
 function withTransportDefaults(wifi: CurrentWifiMetrics): CurrentWifiMetrics {
   return {
@@ -31,7 +32,8 @@ function withTransportDefaults(wifi: CurrentWifiMetrics): CurrentWifiMetrics {
   };
 }
 
-export default function App() {
+function MainApp() {
+  const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState<ActiveTab>('analyzer');
   const selectedScenarioId = 'clean_5g_novpn';
 
@@ -127,7 +129,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className={`min-h-screen flex flex-col font-sans transition-colors ${
+      isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-zinc-100 text-zinc-900'
+    }`}>
       <Header
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -197,16 +201,22 @@ export default function App() {
         onClose={() => setIsDonateOpen(false)}
       />
 
-      <footer className="border-t border-slate-900 bg-slate-950/80 py-4 px-6 text-center text-xs text-slate-500">
+      <footer className={`border-t py-4 px-6 text-center text-xs transition-colors ${
+        isDark ? 'border-zinc-800 bg-zinc-900/90 text-zinc-400' : 'border-zinc-200 bg-white/90 text-zinc-600'
+      }`}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>Wi-Fi Эксперт • Диагностика и анализатор Wi‑Fi</span>
           <div className="flex items-center gap-3">
-            <span className="font-mono text-[11px] text-slate-400">
+            <span className={`font-mono text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
               Фоновое автообновление сетей каждые 6 сек
             </span>
             <button
               onClick={() => setIsDonateOpen(true)}
-              className="text-[11px] text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 cursor-pointer transition-colors"
+              className={`text-[11px] px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1 cursor-pointer transition-all ${
+                isDark
+                  ? 'border border-white text-white hover:bg-white/10'
+                  : 'border border-zinc-900 text-zinc-900 hover:bg-zinc-900/10'
+              }`}
             >
               <span>♥ Поддержать проект</span>
             </button>
@@ -214,5 +224,13 @@ export default function App() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <MainApp />
+    </ThemeProvider>
   );
 }
