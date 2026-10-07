@@ -34,19 +34,24 @@ jobs:
           npm ci || npm install --legacy-peer-deps
           npm run build
 
-      - name: 4. Настройка Java 17
+      - name: 4. Настройка Java 21 (Temurin)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
           cache: 'gradle'
 
-      - name: 5. Настройка Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: 5.1 Принятие лицензий Android SDK
+      - name: 5. Настройка Android SDK и принятие лицензий
         run: |
-          yes | sdkmanager --licenses || true
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          SDKMANAGER=$(which sdkmanager 2>/dev/null || find "$ANDROID_HOME/cmdline-tools" -name sdkmanager 2>/dev/null | head -n 1)
+          if [ -n "$SDKMANAGER" ] && [ -x "$SDKMANAGER" ]; then
+            echo "Найден sdkmanager: $SDKMANAGER"
+            yes | "$SDKMANAGER" --licenses 2>/dev/null || true
+            "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0" 2>/dev/null || true
+          else
+            echo "sdkmanager не найден напрямую, полагаемся на авто-загрузку Gradle (android.builder.sdkDownload=true)"
+          fi
 
       - name: 6. Синхронизация Capacitor с Android
         run: |
@@ -63,8 +68,8 @@ jobs:
       - name: 9. Копирование готового APK в папку distrib в корне
         run: |
           mkdir -p distrib
-          APK_FILE=$(find android/app/build/outputs/apk/debug -name "*.apk" | head -n 1)
-          if [ -f "$APK_FILE" ]; then
+          APK_FILE=$(find android/app/build/outputs/apk -name "*.apk" | head -n 1)
+          if [ -n "$APK_FILE" ] && [ -f "$APK_FILE" ]; then
             cp "$APK_FILE" distrib/wifi-expert.apk
             cp "$APK_FILE" distrib/wifi-expert-debug.apk
             echo "APK успешно скопирован в папку distrib/:"
@@ -91,9 +96,12 @@ jobs:
             echo "Изменений в distrib/*.apk нет, коммит не требуется."
           else
             git commit -m "build(distrib): update compiled Android APK [skip ci]"
-            # Синхронизация перед отправкой, чтобы избежать неконсистентности
             git pull --rebase origin ${{ github.ref_name }} || true
-            git push origin HEAD:${{ github.ref_name }}
+            if git push origin HEAD:${{ github.ref_name }}; then
+              echo "APK успешно закоммичен и отправлен в репозиторий!"
+            else
+              echo "::warning::Не удалось запушить в репозиторий. Проверьте: Settings -> Actions -> General -> Workflow permissions -> 'Read and write permissions'."
+            fi
           fi
 
       - name: 12. Публикация APK в GitHub Releases (при релизном теге v*)
