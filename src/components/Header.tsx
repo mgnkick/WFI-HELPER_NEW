@@ -4,7 +4,8 @@ import {
   Radio,
   FileText,
   BookOpen,
-  Lightbulb
+  Lightbulb,
+  Heart
 } from 'lucide-react';
 import { CurrentWifiMetrics } from '../types/wifi';
 
@@ -14,12 +15,14 @@ interface HeaderProps {
   activeTab: ActiveTab;
   onTabChange: (tab: ActiveTab) => void;
   currentWifi: CurrentWifiMetrics;
+  onOpenDonate?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   onTabChange,
-  currentWifi
+  currentWifi,
+  onOpenDonate
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80">
@@ -128,6 +131,18 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <BookOpen className="w-4 h-4" />
             <span>Справочник</span>
+          </button>
+
+          {/* Маленькая аккуратная кнопка для доната на карту Сбербанка после справочника */}
+          <div className="h-4 w-px bg-slate-800 my-auto mx-0.5 shrink-0" />
+
+          <button
+            onClick={onOpenDonate}
+            title="Поддержать автора (Сбербанк: 5336 6903 0435 1846)"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 active:scale-95 border border-emerald-500/30 transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-sm"
+          >
+            <Heart className="w-3 h-3 fill-emerald-400/30 text-emerald-400" />
+            <span>Донат</span>
           </button>
         </nav>
       </div>

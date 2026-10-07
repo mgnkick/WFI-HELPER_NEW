@@ -9,6 +9,7 @@ import { SupportReportView } from './components/SupportReportView';
 import { KnowledgeBaseView } from './components/KnowledgeBaseView';
 import { RecommendationsView } from './components/RecommendationsView';
 import { TermExplainerModal } from './components/TermExplainerModal';
+import { DonateModal } from './components/DonateModal';
 import { VpnBanner } from './components/VpnBanner';
 import { SCENARIO_PROFILES } from './data/mockScenarios';
 import { CurrentWifiMetrics, AccessPoint, PingResult, SpeedTestRun } from './types/wifi';
@@ -46,6 +47,7 @@ export default function App() {
   const [speedHistory, setSpeedHistory] = useState<SpeedTestRun[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [activeModalTermId, setActiveModalTermId] = useState<string | null>(null);
+  const [isDonateOpen, setIsDonateOpen] = useState(false);
   const scenarioRef = useRef(currentScenario);
   scenarioRef.current = currentScenario;
 
@@ -130,6 +132,7 @@ export default function App() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         currentWifi={wifiMetrics}
+        onOpenDonate={() => setIsDonateOpen(true)}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
@@ -177,7 +180,10 @@ export default function App() {
         )}
 
         {activeTab === 'knowledge' && (
-          <KnowledgeBaseView onSelectTermModal={setActiveModalTermId} />
+          <KnowledgeBaseView
+            onSelectTermModal={setActiveModalTermId}
+            onOpenDonate={() => setIsDonateOpen(true)}
+          />
         )}
       </main>
 
@@ -186,12 +192,25 @@ export default function App() {
         onClose={() => setActiveModalTermId(null)}
       />
 
+      <DonateModal
+        isOpen={isDonateOpen}
+        onClose={() => setIsDonateOpen(false)}
+      />
+
       <footer className="border-t border-slate-900 bg-slate-950/80 py-4 px-6 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>Wi-Fi Эксперт • Диагностика и анализатор Wi‑Fi</span>
-          <span className="font-mono text-[11px] text-slate-400">
-            Фоновое автообновление сетей каждые 6 сек
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[11px] text-slate-400">
+              Фоновое автообновление сетей каждые 6 сек
+            </span>
+            <button
+              onClick={() => setIsDonateOpen(true)}
+              className="text-[11px] text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <span>♥ Поддержать проект</span>
+            </button>
+          </div>
         </div>
       </footer>
     </div>

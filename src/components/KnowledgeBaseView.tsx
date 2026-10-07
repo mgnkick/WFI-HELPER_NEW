@@ -10,17 +10,48 @@ import {
   ShieldAlert,
   AlertTriangle,
   Radio,
-  CheckCircle2
+  CheckCircle2,
+  Heart,
+  CreditCard,
+  Copy,
+  Check
 } from 'lucide-react';
 import { TERMS_KNOWLEDGE, WIFI_ACCURACY_DISCLAIMER } from '../data/termsKnowledge';
+import { SBER_CARD_NUMBER, SBER_CARD_FORMATTED } from './DonateModal';
 
 interface KnowledgeBaseViewProps {
   onSelectTermModal?: (termId: string) => void;
+  onOpenDonate?: () => void;
 }
 
-export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = () => {
+export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
+  onOpenDonate
+}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>('rssi');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyCard = async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(SBER_CARD_NUMBER);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = SBER_CARD_NUMBER;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
 
   const filteredTerms = TERMS_KNOWLEDGE.filter(
     t =>
@@ -167,6 +198,62 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* Блок поддержки проекта / Донат на карту Сбербанка в конце справочника */}
+      <div className="bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
+              <Heart className="w-5 h-5 fill-emerald-400/20" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-bold text-white text-base">Поддержать развитие проекта</h4>
+                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Сбербанк
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed max-w-xl">
+                Если приложение помогло вам настроить Wi-Fi или решить проблему со связью, вы можете поддержать автора переводом любой суммы на карту Сбербанка.
+              </p>
+              <div className="flex flex-wrap items-center gap-3 mt-3">
+                <div className="font-mono text-sm sm:text-base font-bold text-white bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800 flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-emerald-400" />
+                  <span>{SBER_CARD_FORMATTED}</span>
+                </div>
+                <button
+                  onClick={handleCopyCard}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    copied
+                      ? 'bg-emerald-500 text-slate-950 font-bold'
+                      : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                  }`}
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      <span>Скопировано!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Скопировать номер</span>
+                    </>
+                  )}
+                </button>
+                {onOpenDonate && (
+                  <button
+                    onClick={onOpenDonate}
+                    className="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer"
+                  >
+                    Подробнее
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
