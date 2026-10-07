@@ -1,0 +1,80 @@
+name: Build Wi-Fi Expert APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Клонирование репозитория
+        uses: actions/checkout@v4
+
+      - name: 2. Настройка Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: 3. Установка зависимостей и сборка веб-части
+        run: |
+          npm ci || npm install --legacy-peer-deps
+          npm run build
+
+      - name: 4. Настройка Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: 5. Настройка Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 5.1 Принятие лицензий Android SDK
+        run: |
+          yes | sdkmanager --licenses || true
+
+      - name: 6. Синхронизация Capacitor с Android
+        run: |
+          npx cap sync android
+
+      - name: 7. Выдача прав на выполнение Gradle Wrapper
+        run: chmod +x android/gradlew
+
+      - name: 8. Сборка Debug APK через Gradle
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: 8.1 Подготовка имени файла APK
+        run: |
+          cd android/app/build/outputs/apk/debug
+          cp app-debug.apk wifi-expert-debug.apk 2>/dev/null || true
+
+      - name: 9. Сохранение готового APK в артефакты GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: wifi-expert-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+      - name: 10. Публикация APK в GitHub Releases (при релизном теге v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/debug/*.apk
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

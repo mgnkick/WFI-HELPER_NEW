@@ -1,11 +1,93 @@
-<div align="center">
+# Wi-Fi Эксперт: Анализатор и Диагностика (WiFi-Helper)
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+Профессиональное кроссплатформенное приложение (Web + Android на базе Capacitor) для глубокого анализа Wi-Fi сетей, радиоэфира 2.4 / 5 / 6 ГГц, замера скорости через Яндекс Интернетометр и 2IP, проверки потерь пакетов, джиттера и генерации готовых отчетов для провайдера.
 
-  <h1>Built with AI Studio</h2>
+---
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## 🚀 Возможности
+- **Анализатор радиоэфира**: График спектра каналов 2.4/5/6 ГГц, RSSI, ширина канала, стандарты Wi-Fi (Wi-Fi 4..7).
+- **Группировка по SSID**: Определение сетей с одинаковым именем, работающих с разных физических точек доступа (Mesh, роутер + репитер) с указанием различий BSSID/MAC.
+- **Замер скорости**: Встроенные замеры скорости через Яндекс Интернетометр и 2IP Speedtest с историей до 15 замеров.
+- **Анализ пинга и джиттера**: Учет допустимости потерь 1-2% в беспроводной среде с рекомендациями.
+- **Формирование отчета**: Готовый технический отчет для провайдера и техподдержки.
+- **Android APK**: Нативная поддержка Android с плагином сканирования Wi-Fi и автосборкой APK через GitHub Actions.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+---
 
-</div>
+## 🤖 Автоматическая сборка APK на GitHub Actions
+
+В репозитории уже настроен пайплайн CI/CD в каталоге `.github/workflows/`:
+1. **`.github/workflows/build-apk.yml`** — Сборка Android Debug APK:
+   - Автоматически запускается при каждом push или Pull Request в ветки `main` / `master`.
+   - Можно запустить вручную в любой момент во вкладке **Actions** -> **Build Wi-Fi Expert APK** -> кнопка **Run workflow**.
+   - Сохраняет готовый APK в **Artifacts** (доступен для скачивания 30 дней).
+   - При установке тега версии (например, `git tag v1.0.0 && git push origin v1.0.0`) автоматически создает **GitHub Release** и прикрепляет файл APK.
+2. **`.github/workflows/web-ci.yml`** — Проверка сборки веб-части и типизации TypeScript.
+
+### Как скачать собранный APK:
+1. Перейдите во вкладку **Actions** в вашем репозитории на GitHub.
+2. Выберите последний успешный запуск workflow **Build Wi-Fi Expert APK**.
+3. В нижней части страницы в блоке **Artifacts** нажмите на **wifi-expert-apk**, чтобы скачать архив с готовым `.apk`.
+
+---
+
+## 📤 Как загрузить проект на GitHub
+
+Если вы инициализируете репозиторий с нуля:
+
+```bash
+# 1. Инициализация локального репозитория git (если еще не инициализирован)
+git init
+
+# 2. Добавление всех файлов
+git add .
+
+# 3. Создание первого коммита
+git commit -m "feat: initial commit with GitHub Actions APK build setup"
+
+# 4. Переименование ветки в main
+git branch -M main
+
+# 5. Привязка к вашему удаленному репозиторию на GitHub (замените URL на ваш)
+git remote add origin https://github.com/ВАШ_ЛОГИН/ВАШ_РЕПОЗИТОРИЙ.git
+
+# 6. Отправка кода на GitHub
+git push -u origin main
+```
+
+После первого `git push` GitHub автоматически запустит workflow сборки APK!
+
+---
+
+## 💻 Локальный запуск и разработка
+
+### Требования
+- **Node.js** 20+ / 22+
+- **npm** 10+
+- (Для сборки Android локально) Android Studio, JDK 17+
+
+### Команды:
+
+```bash
+# Установка зависимостей
+npm install
+
+# Запуск dev-сервера (порт 3000)
+npm run dev
+
+# Проверка TypeScript
+npm run lint
+
+# Сборка веб-бандла (dist/)
+npm run build
+
+# Синхронизация веб-части с Android проектом
+npm run cap:sync
+
+# Сборка веб-части и синхронизация одной командой
+npm run cap:build
+
+# Открытие Android проекта в Android Studio
+npm run cap:open
+```
+
