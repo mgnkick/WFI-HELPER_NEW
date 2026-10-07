@@ -14,6 +14,7 @@ export interface WifiHelperPlugin {
   getSnapshot(): Promise<WifiNativeSnapshot>;
   requestPermissions(): Promise<{ location?: string; nearby?: string }>;
   openVpnSettings(): Promise<void>;
+  openInAppMeter(options?: { url?: string }): Promise<void>;
 }
 
 export const WifiHelper = registerPlugin<WifiHelperPlugin>('WifiHelper');

@@ -151,6 +151,66 @@ public class WifiHelperPlugin extends Plugin {
         }
     }
 
+    @PluginMethod
+    public void openInAppMeter(PluginCall call) {
+        String url = call.getString("url", "https://yandex.ru/internet/");
+        if (getActivity() == null) {
+            call.reject("Activity is null");
+            return;
+        }
+        getActivity().runOnUiThread(() -> {
+            try {
+                android.app.Dialog dialog = new android.app.Dialog(getActivity(), android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                android.widget.LinearLayout layout = new android.widget.LinearLayout(getActivity());
+                layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+                layout.setBackgroundColor(0xFF0F172A);
+
+                // Верхняя панель управления
+                android.widget.LinearLayout topBar = new android.widget.LinearLayout(getActivity());
+                topBar.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+                topBar.setPadding(36, 32, 36, 32);
+                topBar.setBackgroundColor(0xFF1E293B);
+
+                android.widget.TextView title = new android.widget.TextView(getActivity());
+                title.setText("Яндекс Интернетометр");
+                title.setTextColor(0xFFFFFFFF);
+                title.setTextSize(16);
+                title.setTypeface(null, android.graphics.Typeface.BOLD);
+                android.widget.LinearLayout.LayoutParams titleParams = new android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+                topBar.addView(title, titleParams);
+
+                android.widget.Button closeBtn = new android.widget.Button(getActivity());
+                closeBtn.setText("✕ Закрыть");
+                closeBtn.setTextColor(0xFF38BDF8);
+                closeBtn.setBackgroundColor(0x00000000);
+                closeBtn.setOnClickListener(v -> dialog.dismiss());
+                topBar.addView(closeBtn);
+
+                layout.addView(topBar);
+
+                android.webkit.WebView webView = new android.webkit.WebView(getActivity());
+                webView.getSettings().setJavaScriptEnabled(true);
+                webView.getSettings().setDomStorageEnabled(true);
+                webView.getSettings().setDatabaseEnabled(true);
+                webView.getSettings().setCacheMode(android.webkit.WebSettings.LOAD_DEFAULT);
+                webView.setWebViewClient(new android.webkit.WebViewClient());
+                webView.loadUrl(url);
+
+                android.widget.LinearLayout.LayoutParams webViewParams = new android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT
+                );
+                layout.addView(webView, webViewParams);
+
+                dialog.setContentView(layout);
+                dialog.show();
+                call.resolve();
+            } catch (Exception e) {
+                call.reject("Ошибка открытия Интернетометра: " + e.getMessage());
+            }
+        });
+    }
+
     private JSObject wifiInfoToJson(WifiInfo info) {
         JSObject o = new JSObject();
         String ssid = info.getSSID();
