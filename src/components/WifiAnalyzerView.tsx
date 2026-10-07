@@ -31,6 +31,7 @@ interface WifiAnalyzerViewProps {
   visibleAps: AccessPoint[];
   onOpenTerm: (termId: string) => void;
   lastUpdated?: Date | null;
+  onRefresh?: () => void;
 }
 
 interface SsidGroup {
@@ -51,7 +52,8 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
   wifi,
   visibleAps,
   onOpenTerm,
-  lastUpdated
+  lastUpdated,
+  onRefresh
 }) => {
   // Выбор диапазона для графического спектрального анализатора
   const [selectedBandTab, setSelectedBandTab] = useState<'2.4GHz' | '5GHz'>(
@@ -205,17 +207,29 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Статус автообновления */}
-      <div className="flex items-center justify-between gap-3 text-xs text-slate-400">
-        <span className="flex items-center gap-1.5">
-          <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
-          Автообновление списка сетей каждые 5 секунд
+      {/* Статус автообновления и кнопка ручного обновления */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-400 bg-slate-900/60 p-3 rounded-2xl border border-slate-800/80">
+        <span className="flex items-center gap-2">
+          <RefreshCw className="w-3.5 h-3.5 text-cyan-400 animate-spin" style={{ animationDuration: '6s' }} />
+          <span>Фоновое автообновление сетей раз в 6 секунд</span>
         </span>
-        {lastUpdated && (
-          <span className="font-mono">
-            Обновлено: {lastUpdated.toLocaleTimeString('ru-RU')}
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {onRefresh && (
+            <button
+              type="button"
+              onClick={onRefresh}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 font-semibold text-xs transition-all shadow-sm active:scale-95 cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Обновить вручную</span>
+            </button>
+          )}
+          {lastUpdated && (
+            <span className="font-mono text-slate-400 text-[11px]">
+              Обновлено: {lastUpdated.toLocaleTimeString('ru-RU')}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Верхние 4 карточки параметров текущей сети */}

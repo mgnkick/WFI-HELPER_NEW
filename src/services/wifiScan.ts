@@ -27,6 +27,8 @@ export function jitterCurrentWifi(wifi: CurrentWifiMetrics, aps: AccessPoint[]):
 export async function fetchNativeWifiSnapshot(): Promise<{
   wifiConnected: boolean;
   usingMobileInternet: boolean;
+  vpnActive?: boolean;
+  vpnInterfaceName?: string;
   current: Partial<CurrentWifiMetrics> | null;
   accessPoints: AccessPoint[];
 } | null> {
@@ -45,6 +47,8 @@ export async function fetchNativeWifiSnapshot(): Promise<{
     return {
       wifiConnected: !!snap.wifiConnected,
       usingMobileInternet: !!snap.usingMobileInternet,
+      vpnActive: snap.vpnActive,
+      vpnInterfaceName: snap.vpnInterfaceName,
       current: snap.current || null,
       accessPoints: Array.isArray(snap.accessPoints) ? snap.accessPoints : []
     };
@@ -59,16 +63,29 @@ export function mergeNativeIntoWifi(
   current: Partial<CurrentWifiMetrics> | null,
   wifiConnected: boolean,
   usingMobileInternet: boolean,
-  aps: AccessPoint[]
+  aps: AccessPoint[],
+  vpnActive?: boolean,
+  vpnInterfaceName?: string
 ): CurrentWifiMetrics {
   const rssi = current?.rssi ?? prev.rssi;
   const channel = current?.channel ?? prev.channel;
   const coChannelApCount = aps.filter(ap => ap.channel === channel && !ap.isCurrent).length;
 
+  const isVpnOn = vpnActive !== undefined ? vpnActive : prev.vpn.isActive;
+  const iface = vpnInterfaceName || prev.vpn.interfaceName || 'tun0';
+
   return {
     ...prev,
     ...current,
-    vpn: prev.vpn,
+    vpn: {
+      ...prev.vpn,
+      isActive: isVpnOn,
+      interfaceName: isVpnOn ? iface : undefined,
+      vpnAppName: isVpnOn ? (prev.vpn.vpnAppName || 'Системный VPN') : undefined,
+      warningNote: isVpnOn
+        ? 'ВНИМАНИЕ: В системе активен VPN! Скорость и задержка ограничены удаленным туннелем, а не вашим интернет-провайдером!'
+        : 'VPN выключен. Трафик идет напрямую к вашему провайдеру без посторонних ограничений.'
+    },
     wifiConnected,
     usingMobileInternet,
     rssi,

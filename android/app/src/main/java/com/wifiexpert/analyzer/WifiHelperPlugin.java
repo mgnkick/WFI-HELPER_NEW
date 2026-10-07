@@ -2,6 +2,7 @@ package com.wifiexpert.analyzer;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -9,6 +10,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.provider.Settings;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -16,6 +18,8 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 
@@ -42,6 +46,8 @@ public class WifiHelperPlugin extends Plugin {
 
             boolean wifiConnected = false;
             boolean usingMobile = false;
+            boolean vpnActive = false;
+            String vpnInterfaceName = "";
 
             if (cm != null) {
                 Network active = cm.getActiveNetwork();
@@ -49,6 +55,40 @@ public class WifiHelperPlugin extends Plugin {
                 if (caps != null) {
                     wifiConnected = caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
                     usingMobile = caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
+                    if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+                        vpnActive = true;
+                    }
+                }
+
+                // Дополнительная проверка всех активных сетей на VPN transport
+                Network[] all = cm.getAllNetworks();
+                if (all != null) {
+                    for (Network n : all) {
+                        NetworkCapabilities c = cm.getNetworkCapabilities(n);
+                        if (c != null && c.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+                            vpnActive = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Дополнительная проверка системных сетевых интерфейсов (tun, tap, ppp, wg, vpn)
+            if (!vpnActive) {
+                try {
+                    Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+                    while (interfaces != null && interfaces.hasMoreElements()) {
+                        NetworkInterface iface = interfaces.nextElement();
+                        if (iface != null && iface.isUp() && !iface.isLoopback()) {
+                            String name = iface.getName().toLowerCase(Locale.US);
+                            if (name.startsWith("tun") || name.startsWith("ppp") || name.startsWith("tap") || name.contains("wg") || name.contains("vpn")) {
+                                vpnActive = true;
+                                vpnInterfaceName = iface.getName();
+                                break;
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {
                 }
             }
 
@@ -64,7 +104,7 @@ public class WifiHelperPlugin extends Plugin {
                 WifiInfo info = wifiManager.getConnectionInfo();
                 if (info != null && info.getNetworkId() != -1) {
                     wifiConnected = true;
-                current = wifiInfoToJson(info);
+                    current = wifiInfoToJson(info);
                 }
             }
 
@@ -82,11 +122,32 @@ public class WifiHelperPlugin extends Plugin {
             JSObject out = new JSObject();
             out.put("wifiConnected", wifiConnected);
             out.put("usingMobileInternet", usingMobile && !wifiConnected);
+            out.put("vpnActive", vpnActive);
+            out.put("vpnInterfaceName", vpnInterfaceName.isEmpty() ? (vpnActive ? "tun0 (VPN)" : "") : vpnInterfaceName);
             out.put("current", current);
             out.put("accessPoints", aps);
             call.resolve(out);
         } catch (Exception e) {
             call.reject("Не удалось получить список сетей: " + e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void openVpnSettings(PluginCall call) {
+        try {
+            Intent intent = new Intent(Settings.ACTION_VPN_SETTINGS);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            call.resolve();
+        } catch (Exception e) {
+            try {
+                Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(intent);
+                call.resolve();
+            } catch (Exception e2) {
+                call.reject("Не удалось открыть настройки VPN: " + e2.getMessage());
+            }
         }
     }
 

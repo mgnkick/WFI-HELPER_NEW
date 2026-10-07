@@ -7,14 +7,14 @@ import { SpeedtestDashboard } from './components/SpeedtestDashboard';
 import { WifiAnalyzerView } from './components/WifiAnalyzerView';
 import { SupportReportView } from './components/SupportReportView';
 import { KnowledgeBaseView } from './components/KnowledgeBaseView';
-import { AndroidCodeHubView } from './components/AndroidCodeHubView';
 import { RecommendationsView } from './components/RecommendationsView';
 import { TermExplainerModal } from './components/TermExplainerModal';
-import { SCENARIO_PROFILES, INITIAL_SPEED_TEST_HISTORY } from './data/mockScenarios';
+import { VpnBanner } from './components/VpnBanner';
+import { SCENARIO_PROFILES } from './data/mockScenarios';
 import { CurrentWifiMetrics, AccessPoint, PingResult, SpeedTestRun } from './types/wifi';
 import { Capacitor } from '@capacitor/core';
 import { fetchPublicIp } from './services/networkTester';
-import { generateAndroidProjectZip, triggerDownload } from './utils/zipExporter';
+import { WifiHelper } from './plugins/wifiHelper';
 import {
   fetchNativeWifiSnapshot,
   jitterAccessPoints,
@@ -31,8 +31,8 @@ function withTransportDefaults(wifi: CurrentWifiMetrics): CurrentWifiMetrics {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('speedtest');
-  const [selectedScenarioId, setSelectedScenarioId] = useState<string>('clean_5g_novpn');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('analyzer');
+  const selectedScenarioId = 'clean_5g_novpn';
 
   const currentScenario =
     SCENARIO_PROFILES.find(s => s.id === selectedScenarioId) || SCENARIO_PROFILES[0];
@@ -42,7 +42,8 @@ export default function App() {
   );
   const [visibleAps, setVisibleAps] = useState<AccessPoint[]>(currentScenario.visibleAps);
   const [pings, setPings] = useState<PingResult[]>(currentScenario.pings);
-  const [speedHistory, setSpeedHistory] = useState<SpeedTestRun[]>(INITIAL_SPEED_TEST_HISTORY);
+  // Изначально история замеров абсолютно чистая (пустая)
+  const [speedHistory, setSpeedHistory] = useState<SpeedTestRun[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [activeModalTermId, setActiveModalTermId] = useState<string | null>(null);
   const scenarioRef = useRef(currentScenario);
@@ -58,7 +59,9 @@ export default function App() {
           snap.current,
           snap.wifiConnected,
           snap.usingMobileInternet,
-          snap.accessPoints
+          snap.accessPoints,
+          snap.vpnActive,
+          snap.vpnInterfaceName
         )
       );
       setLastUpdated(new Date());
@@ -79,12 +82,13 @@ export default function App() {
       setVisibleAps(currentScenario.visibleAps);
     }
     void refreshNetworks();
-  }, [selectedScenarioId, currentScenario, refreshNetworks]);
+  }, [currentScenario, refreshNetworks]);
 
+  // Фоновое автоматическое обновление сетей раз в 6 секунд
   useEffect(() => {
     const id = window.setInterval(() => {
       void refreshNetworks();
-    }, 5000);
+    }, 6000);
     return () => window.clearInterval(id);
   }, [refreshNetworks]);
 
@@ -99,40 +103,25 @@ export default function App() {
     });
   }, []);
 
-  const handleToggleVpn = () => {
-    setWifiMetrics(prev => {
-      const newActive = !prev.vpn.isActive;
-      return {
-        ...prev,
-        vpn: {
-          isActive: newActive,
-          interfaceName: newActive ? 'tun0 (WireGuard)' : undefined,
-          vpnAppName: newActive ? 'WireGuard / VPN Client' : undefined,
-          serverLocation: newActive ? 'Амстердам (Нидерланды)' : undefined,
-          detectedIp: newActive ? '185.220.101.5' : '178.62.204.18',
-          warningNote: newActive
-            ? 'ВНИМАНИЕ: Включен ВПН! Скорость и задержка ограничены удаленным сервером VPN, а не вашим интернет-провайдером!'
-            : 'VPN выключен. Трафик идет напрямую к вашему провайдеру без посторонних ограничений.'
-        }
-      };
-    });
+  const handleOpenVpnSettings = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await WifiHelper.openVpnSettings();
+      } catch (e) {
+        console.warn('Не удалось открыть настройки VPN', e);
+      }
+    } else {
+      window.alert('В вашей системе обнаружен активный VPN! Откройте сетевые настройки вашей операционной системы или клиент VPN и выключите соединение для честного замера скорости.');
+    }
   };
 
   const handleSaveSpeedRun = (run: SpeedTestRun) => {
-    setSpeedHistory(prev => [run, ...prev]);
+    // Сохраняем до 15 замеров в истории
+    setSpeedHistory(prev => [run, ...prev].slice(0, 15));
   };
 
   const handleClearHistory = () => {
     setSpeedHistory([]);
-  };
-
-  const handleDownloadZip = async () => {
-    try {
-      const blob = await generateAndroidProjectZip();
-      triggerDownload(blob, 'wifi-helper-android-project.zip');
-    } catch (e) {
-      console.error('Error generating project ZIP:', e);
-    }
   };
 
   return (
@@ -141,14 +130,17 @@ export default function App() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         currentWifi={wifiMetrics}
-        selectedScenarioId={selectedScenarioId}
-        onSelectScenario={setSelectedScenarioId}
-        onToggleVpnMock={handleToggleVpn}
-        onDownloadZip={handleDownloadZip}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
-        {/* Вкладка замера скорости сохраняется в DOM, чтобы замер не прерывался при переключении других вкладок */}
+        {/* Предупреждение о включенном в системе VPN (появляется только если VPN активен) */}
+        {wifiMetrics.vpn.isActive && (
+          <div className="mb-6">
+            <VpnBanner vpn={wifiMetrics.vpn} onOpenSettings={handleOpenVpnSettings} />
+          </div>
+        )}
+
+        {/* Вкладка замера скорости сохраняется в DOM, чтобы замер не прерывался при переключении */}
         <div className={activeTab === 'speedtest' || activeTab === 'yandex' ? 'block' : 'hidden'}>
           <SpeedtestDashboard
             wifi={wifiMetrics}
@@ -156,7 +148,7 @@ export default function App() {
             onOpenTerm={setActiveModalTermId}
             onSaveSpeedRun={handleSaveSpeedRun}
             onClearHistory={handleClearHistory}
-            onToggleVpnMock={handleToggleVpn}
+            onOpenVpnSettings={handleOpenVpnSettings}
           />
         </div>
 
@@ -166,6 +158,7 @@ export default function App() {
             visibleAps={visibleAps}
             onOpenTerm={setActiveModalTermId}
             lastUpdated={lastUpdated}
+            onRefresh={refreshNetworks}
           />
         )}
 
@@ -186,10 +179,6 @@ export default function App() {
         {activeTab === 'knowledge' && (
           <KnowledgeBaseView onSelectTermModal={setActiveModalTermId} />
         )}
-
-        {activeTab === 'code' && (
-          <AndroidCodeHubView />
-        )}
       </main>
 
       <TermExplainerModal
@@ -199,9 +188,9 @@ export default function App() {
 
       <footer className="border-t border-slate-900 bg-slate-950/80 py-4 px-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>WiFi-Helper • Диагностика и анализатор Wi‑Fi</span>
+          <span>Wi-Fi Эксперт • Диагностика и анализатор Wi‑Fi</span>
           <span className="font-mono text-[11px] text-slate-400">
-            Android 8..14+ • Автообновление сетей каждые 5 сек
+            Фоновое автообновление сетей каждые 6 сек
           </span>
         </div>
       </footer>
