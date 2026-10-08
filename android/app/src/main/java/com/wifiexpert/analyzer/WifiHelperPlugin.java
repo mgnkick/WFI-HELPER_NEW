@@ -94,17 +94,36 @@ public class WifiHelperPlugin extends Plugin {
 
             JSObject current = null;
             if (wifiManager != null) {
-                try {
-                    wifiManager.startScan();
-                } catch (Exception ignored) {
-                    // throttled scan is fine — use cached results
-                }
+                boolean isWifiEnabled = wifiManager.isWifiEnabled();
+                if (!isWifiEnabled) {
+                    wifiConnected = false;
+                } else {
+                    try {
+                        wifiManager.startScan();
+                    } catch (Exception ignored) {
+                        // throttled scan is fine — use cached results
+                    }
 
-                @SuppressWarnings("deprecation")
-                WifiInfo info = wifiManager.getConnectionInfo();
-                if (info != null && info.getNetworkId() != -1) {
-                    wifiConnected = true;
-                    current = wifiInfoToJson(info);
+                    @SuppressWarnings("deprecation")
+                    WifiInfo info = wifiManager.getConnectionInfo();
+                    boolean hasValidLink = info != null
+                        && info.getNetworkId() != -1
+                        && info.getBSSID() != null
+                        && !info.getBSSID().equals("02:00:00:00:00:00")
+                        && info.getIpAddress() != 0
+                        && info.getSSID() != null
+                        && !info.getSSID().equals("<unknown ssid>")
+                        && !info.getSSID().equals("0x");
+
+                    if (wifiConnected && hasValidLink) {
+                        current = wifiInfoToJson(info);
+                    } else if (hasValidLink) {
+                        wifiConnected = true;
+                        current = wifiInfoToJson(info);
+                    } else {
+                        wifiConnected = false;
+                        current = null;
+                    }
                 }
             }
 

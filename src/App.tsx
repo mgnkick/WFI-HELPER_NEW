@@ -119,6 +119,19 @@ function MainApp() {
     }
   };
 
+  const handleOpenWifiSettings = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await WifiHelper.openWifiSettings();
+      } catch (e) {
+        console.warn('Не удалось открыть настройки Wi-Fi', e);
+      }
+    } else {
+      // Веб-окружение: сообщаем о необходимости подключиться к Wi-Fi в настройках устройства
+      window.alert('Устройство не подключено к Wi‑Fi. Откройте системные настройки устройства (Wi‑Fi) и выберите вашу домашнюю беспроводную сеть.');
+    }
+  };
+
   const handleSaveSpeedRun = (run: SpeedTestRun) => {
     // Сохраняем до 15 замеров в истории
     setSpeedHistory(prev => [run, ...prev].slice(0, 15));
@@ -174,6 +187,7 @@ function MainApp() {
         onTabChange={setActiveTab}
         currentWifi={wifiMetrics}
         onOpenDonate={() => setIsDonateOpen(true)}
+        onOpenWifiSettings={handleOpenWifiSettings}
       />
 
       <main className="flex-1 max-w-[540px] sm:max-w-[560px] w-full mx-auto px-3 sm:px-4 py-3 sm:py-5 transition-all">
@@ -203,11 +217,16 @@ function MainApp() {
             onOpenTerm={setActiveModalTermId}
             lastUpdated={lastUpdated}
             onRefresh={refreshNetworks}
+            onOpenWifiSettings={handleOpenWifiSettings}
           />
         )}
 
         {activeTab === 'recommendations' && (
-          <RecommendationsView wifi={wifiMetrics} visibleAps={visibleAps} />
+          <RecommendationsView
+            wifi={wifiMetrics}
+            visibleAps={visibleAps}
+            onOpenWifiSettings={handleOpenWifiSettings}
+          />
         )}
 
         {activeTab === 'report' && (
@@ -217,6 +236,7 @@ function MainApp() {
             pings={pings}
             lastSpeedRun={speedHistory[0]}
             onOpenTerm={setActiveModalTermId}
+            onOpenWifiSettings={handleOpenWifiSettings}
           />
         )}
 

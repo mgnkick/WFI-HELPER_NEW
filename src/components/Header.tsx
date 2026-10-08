@@ -7,7 +7,8 @@ import {
   Lightbulb,
   Heart,
   Sun,
-  Moon
+  Moon,
+  WifiOff
 } from 'lucide-react';
 import { CurrentWifiMetrics } from '../types/wifi';
 import { useTheme } from '../context/ThemeContext';
@@ -19,13 +20,15 @@ interface HeaderProps {
   onTabChange: (tab: ActiveTab) => void;
   currentWifi: CurrentWifiMetrics;
   onOpenDonate?: () => void;
+  onOpenWifiSettings?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   onTabChange,
   currentWifi,
-  onOpenDonate
+  onOpenDonate,
+  onOpenWifiSettings
 }) => {
   const { isDark, toggleTheme } = useTheme();
 
@@ -68,23 +71,44 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Правая панель: Текущий Wi-Fi статус и Переключатель темы */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 font-mono text-xs">
-            {/* Wi-Fi статус */}
-            <div className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl flex items-center gap-1.5 sm:gap-2 border transition-colors ${
-              isDark
-                ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300'
-                : 'bg-zinc-50 border-zinc-200 text-zinc-700'
-            }`}>
-              <Radio className={`w-3 h-3 sm:w-3.5 sm:h-3.5 animate-pulse ${isDark ? 'text-white' : 'text-zinc-900'}`} />
-              <span className={`font-bold max-w-[90px] sm:max-w-[180px] truncate text-[11px] sm:text-xs ${isDark ? 'text-white' : 'text-zinc-900'}`}>
-                {currentWifi.ssid || 'Wi-Fi'}
-              </span>
-              <span className={`text-[10px] sm:text-[11px] font-semibold hidden sm:inline ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
-                {currentWifi.band}
-              </span>
-              <span className={`hidden md:inline text-[10px] sm:text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                {currentWifi.rssi} дБм
-              </span>
-            </div>
+            {/* Wi-Fi статус: ясно показываем статус или отсутствие подключения */}
+            {!currentWifi.wifiConnected ? (
+              <button
+                type="button"
+                onClick={onOpenWifiSettings}
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl flex items-center gap-1.5 sm:gap-2 border transition-all cursor-pointer ${
+                  isDark
+                    ? 'bg-amber-950/40 border-amber-500/50 text-amber-300 hover:bg-amber-950/60'
+                    : 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100 shadow-sm'
+                }`}
+                title="Wi‑Fi не подключен. Нажмите, чтобы открыть системные настройки Wi‑Fi"
+              >
+                <WifiOff className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                <span className="font-bold text-[11px] sm:text-xs">
+                  Wi‑Fi не подключен
+                </span>
+                <span className="hidden sm:inline text-[10px] opacity-75 underline">
+                  Подключить
+                </span>
+              </button>
+            ) : (
+              <div className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl flex items-center gap-1.5 sm:gap-2 border transition-colors ${
+                isDark
+                  ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300'
+                  : 'bg-zinc-50 border-zinc-200 text-zinc-700'
+              }`}>
+                <Radio className={`w-3 h-3 sm:w-3.5 sm:h-3.5 animate-pulse ${isDark ? 'text-white' : 'text-zinc-900'}`} />
+                <span className={`font-bold max-w-[90px] sm:max-w-[180px] truncate text-[11px] sm:text-xs ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                  {currentWifi.ssid || 'Wi-Fi'}
+                </span>
+                <span className={`text-[10px] sm:text-[11px] font-semibold hidden sm:inline ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                  {currentWifi.band}
+                </span>
+                <span className={`hidden md:inline text-[10px] sm:text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                  {currentWifi.rssi} дБм
+                </span>
+              </div>
+            )}
 
             {/* Переключатель светлой/тёмной темы */}
             <button

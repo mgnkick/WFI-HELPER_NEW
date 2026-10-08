@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Lightbulb,
   Radio,
@@ -13,7 +13,9 @@ import {
   Router,
   Layers,
   Dices,
-  RefreshCw
+  RefreshCw,
+  WifiOff,
+  Settings
 } from 'lucide-react';
 import { AccessPoint, CurrentWifiMetrics } from '../types/wifi';
 import { buildRecommendations, score24GHz, score5GHz, AdviceItem } from '../utils/channelAdvice';
@@ -23,6 +25,7 @@ import { useTheme } from '../context/ThemeContext';
 interface RecommendationsViewProps {
   wifi: CurrentWifiMetrics;
   visibleAps: AccessPoint[];
+  onOpenWifiSettings?: () => void;
 }
 
 // Перемешивание массива (алгоритм Фишера — Йетса)
@@ -35,7 +38,7 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-export const RecommendationsView: React.FC<RecommendationsViewProps> = ({ wifi, visibleAps }) => {
+export const RecommendationsView: React.FC<RecommendationsViewProps> = ({ wifi, visibleAps, onOpenWifiSettings }) => {
   const { isDark, cardBg, cardSubtle, btnOutlineSm } = useTheme();
 
   const [activeCategory, setActiveCategory] = useState<'all' | 'hardware' | 'wifi' | 'cellular'>('all');
@@ -62,14 +65,19 @@ export const RecommendationsView: React.FC<RecommendationsViewProps> = ({ wifi, 
     return allAdvice;
   }, [allAdvice, activeCategory]);
 
-  // Динамически перемешанный список при каждом открытии вкладки или смене категории
+  // Статично зафиксированный перемешанный список для текущей сессии просмотра.
+  // Советы НЕ должны переключаться сами по себе каждые 6 сек при фоновом обновлении RSSI!
   const [shuffledList, setShuffledList] = useState<AdviceItem[]>(() => shuffleArray(categoryPool));
 
-  // Перемешиваем список при изменении категории или исходного пула
+  // Отслеживаем категорию: перемешиваем ТОЛЬКО если пользователь лично сменил категорию
+  const prevCategoryRef = useRef(activeCategory);
   useEffect(() => {
-    setShuffledList(shuffleArray(categoryPool));
-    setCurrentPage(0);
-  }, [categoryPool]);
+    if (prevCategoryRef.current !== activeCategory) {
+      prevCategoryRef.current = activeCategory;
+      setShuffledList(shuffleArray(categoryPool));
+      setCurrentPage(0);
+    }
+  }, [activeCategory, categoryPool]);
 
   // Ручное перемешивание по кнопке с анимацией кубика
   const handleShuffle = () => {
@@ -102,28 +110,62 @@ export const RecommendationsView: React.FC<RecommendationsViewProps> = ({ wifi, 
           }`}>
             <Lightbulb className="w-6 h-6" />
           </div>
-          <div>
+          <div className="flex-1">
             <div className="flex items-center gap-2">
               <span className={`text-xs uppercase font-bold tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                 Экспертные рекомендации
               </span>
               <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-500 border border-amber-500/30">
-                3 случайных совета
+                3 совета статично
               </span>
             </div>
             <h3 className={`text-xl font-bold mt-1 ${isDark ? 'text-white' : 'text-zinc-900'}`}>
               Свободные каналы и практические советы
             </h3>
             <p className={`text-xs mt-1.5 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              При каждом открытии вкладки подбираются 3 случайные рекомендации по роутерам, Mesh-системам, репитерам, точкам доступа и мобильному интернету.
+              При входе отображаются 3 случайные рекомендации. Они остаются на экране до тех пор, пока вы сами не нажмете «Другие 3 совета» или не перейдете на вкладку снова.
             </p>
             <div className={`text-xs mt-2 font-mono ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Сейчас: {wifi.ssid} · {wifi.band} · канал {wifi.channel} · сигнал{' '}
-              <SignalValue rssi={wifi.rssi} percent={wifi.signalPercent} />
+              {wifi.wifiConnected ? (
+                <>
+                  Сейчас: {wifi.ssid} · {wifi.band} · канал {wifi.channel} · сигнал{' '}
+                  <SignalValue rssi={wifi.rssi} percent={wifi.signalPercent} />
+                </>
+              ) : (
+                <span className="text-amber-500 font-bold">
+                  Сейчас: Wi‑Fi не подключен · {wifi.usingMobileInternet ? 'Активна мобильная связь' : 'Беспроводная сеть выключена'}
+                </span>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Уведомление, если Wi-Fi не подключен */}
+      {!wifi.wifiConnected && (
+        <div className={`p-4 sm:p-5 rounded-3xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs ${
+          isDark ? 'bg-amber-950/20 border-amber-500/40 text-amber-200' : 'bg-amber-50 border-amber-300 text-amber-900 shadow-sm'
+        }`}>
+          <div className="flex items-start gap-3">
+            <WifiOff className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <strong className="text-sm block">Wi‑Fi не подключен</strong>
+              <p className="mt-0.5 opacity-90 leading-relaxed">
+                Ниже представлены практические советы по роутерам, Mesh и радиоэфиру. Подключитесь к Wi‑Fi для индивидуального подбора свободного канала для вашего дома.
+              </p>
+            </div>
+          </div>
+          {onOpenWifiSettings && (
+            <button
+              onClick={onOpenWifiSettings}
+              className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-zinc-950 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap self-stretch sm:self-auto justify-center"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              <span>Подключиться к Wi‑Fi</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Карточки свободных каналов 2.4 ГГц и 5 ГГц */}
       <div className="grid grid-cols-1 md:grid-cols-2 landscape:grid-cols-2 gap-3 sm:gap-4">

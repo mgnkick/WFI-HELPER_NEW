@@ -4,9 +4,9 @@ import {
   Copy,
   Check,
   Download,
-  Share2,
-  Send,
-  Sparkles
+  Sparkles,
+  WifiOff,
+  Settings
 } from 'lucide-react';
 import { CurrentWifiMetrics, AccessPoint, PingResult, SpeedTestRun } from '../types/wifi';
 import { generateSupportReport } from '../services/networkTester';
@@ -19,13 +19,15 @@ interface SupportReportViewProps {
   pings: PingResult[];
   lastSpeedRun?: SpeedTestRun;
   onOpenTerm: (termId: string) => void;
+  onOpenWifiSettings?: () => void;
 }
 
 export const SupportReportView: React.FC<SupportReportViewProps> = ({
   wifi,
   visibleAps,
   pings,
-  lastSpeedRun
+  lastSpeedRun,
+  onOpenWifiSettings
 }) => {
   const { isDark, cardBg, cardSubtle, btnOutlineSm, btnActive } = useTheme();
   const [copied, setCopied] = useState(false);
@@ -48,50 +50,75 @@ export const SupportReportView: React.FC<SupportReportViewProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const handleShareTelegram = () => {
-    const encoded = encodeURIComponent(report.text);
-    window.open(`https://t.me/share/url?url=${encoded}`, '_blank');
-  };
-
-  const handleShareWhatsApp = () => {
-    const encoded = encodeURIComponent(report.text);
-    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
-  };
-
   return (
     <div className="space-y-6">
       {/* 1. ВЕРДИКТ ДИАГНОСТИКИ */}
       <div className={`${cardBg} rounded-3xl p-6 transition-colors`}>
         <div className="flex items-start gap-4">
           <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center flex-shrink-0 ${
-            isDark ? 'bg-zinc-800 border-white text-white' : 'bg-zinc-900 border-zinc-900 text-white'
+            !wifi.wifiConnected
+              ? 'bg-amber-500/20 border-amber-500/40 text-amber-500'
+              : (isDark ? 'bg-zinc-800 border-white text-white' : 'bg-zinc-900 border-zinc-900 text-white')
           }`}>
-            <Sparkles className="w-6 h-6" />
+            {!wifi.wifiConnected ? <WifiOff className="w-6 h-6 stroke-[2.5]" /> : <Sparkles className="w-6 h-6" />}
           </div>
 
-          <div>
-            <span className={`text-xs uppercase font-bold tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-              Автоматический диагностический вердикт
-            </span>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`text-xs uppercase font-bold tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                Автоматический диагностический вердикт
+              </span>
+              {!wifi.wifiConnected && (
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  {wifi.usingMobileInternet ? 'Мобильная сеть (LTE)' : 'Сеть отключена'}
+                </span>
+              )}
+            </div>
+
             <h3 className={`text-xl font-bold mt-0.5 ${isDark ? 'text-white' : 'text-zinc-900'}`}>
-              {wifi.vpn.isActive
-                ? 'Внимание: Активен ВПН (VPN)'
-                : (wifi.band.includes('2.4') && wifi.coChannelApCount > 3
-                  ? 'Узкое место: Перегруженный диапазон 2.4 ГГц'
-                  : (wifi.rssi < -78
-                    ? 'Узкое место: Затухание сигнала в стенах'
-                    : 'Домашняя сеть и радиоканал в отличном состоянии'))}
+              {!wifi.wifiConnected
+                ? 'Wi‑Fi не подключен (нет соединения с сетью)'
+                : (wifi.vpn.isActive
+                  ? 'Внимание: Активен ВПН (VPN)'
+                  : (wifi.band.includes('2.4') && wifi.coChannelApCount > 3
+                    ? 'Узкое место: Перегруженный диапазон 2.4 ГГц'
+                    : (wifi.rssi < -78
+                      ? 'Узкое место: Затухание сигнала в стенах'
+                      : 'Домашняя сеть и радиоканал в отличном состоянии')))}
             </h3>
 
             <p className={`text-xs mt-2 leading-relaxed ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
-              {wifi.vpn.isActive
-                ? 'Скорость соединения и задержка искусственно занижаются удаленным сервером ВПН. Оператор техподдержки не сможет протестировать линию до тех пор, пока вы не отключите ВПН на устройстве.'
-                : (wifi.band.includes('2.4')
-                  ? 'На вашем 6-м канале обнаружено еще несколько соседских роутеров. Физические радиоколлизии вызывают скачки пинга до роутера и снижение скорости.'
-                  : 'Параметры радиосигнала и задержка до домашнего роутера находятся в пределах идеальной нормы. Если наблюдаются проблемы с сайтами — причина на внешнем кабеле провайдера.')}
+              {!wifi.wifiConnected
+                ? (wifi.usingMobileInternet
+                    ? 'Устройство работает через мобильный интернет. Никаких фиктивных заглушек параметров домашнего Wi‑Fi не отображается. Для диагностики радиоканала и задержки подключитесь к Wi‑Fi роутеру.'
+                    : 'Беспроводная сеть Wi‑Fi отключена. Никаких заглушек не отображается. Подключитесь к роутеру или точке доступа для проведения полного теста стабильности линии.')
+                : (wifi.vpn.isActive
+                  ? 'Скорость соединения и задержка искусственно занижаются удаленным сервером ВПН. Оператор техподдержки не сможет протестировать линию до тех пор, пока вы не отключите ВПН на устройстве.'
+                  : (wifi.band.includes('2.4')
+                    ? 'На вашем 6-м канале обнаружено еще несколько соседских роутеров. Физические радиоколлизии вызывают скачки пинга до роутера и снижение скорости.'
+                    : 'Параметры радиосигнала и задержка до домашнего роутера находятся в пределах идеальной нормы. Если наблюдаются проблемы с сайтами — причина на внешнем кабеле провайдера.'))}
             </p>
-            <div className={`text-xs mt-3 font-mono ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-              Сигнал Wi‑Fi: <SignalValue rssi={wifi.rssi} percent={wifi.signalPercent} />
+
+            <div className={`text-xs mt-3 font-mono flex items-center justify-between flex-wrap gap-2 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              <div>
+                Сигнал Wi‑Fi:{' '}
+                {wifi.wifiConnected ? (
+                  <SignalValue rssi={wifi.rssi} percent={wifi.signalPercent} />
+                ) : (
+                  <strong className="text-amber-500">Не подключено</strong>
+                )}
+              </div>
+
+              {!wifi.wifiConnected && onOpenWifiSettings && (
+                <button
+                  type="button"
+                  onClick={onOpenWifiSettings}
+                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                  <span>Открыть настройки Wi‑Fi</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -114,7 +141,7 @@ export const SupportReportView: React.FC<SupportReportViewProps> = ({
         </div>
       </div>
 
-      {/* 2. ГОТОВЫЙ ТЕКСТОВЫЙ ОТЧЕТ С КНОПКАМИ ЭКСПОРТА */}
+      {/* 2. ГОТОВЫЙ ТЕКСТОВЫЙ ОТЧЕТ С КНОПКАМИ ЭКСПОРТА (ТОЛЬКО КОПИРОВАТЬ И СКАЧАТЬ .TXT) */}
       <div className={`${cardBg} rounded-3xl p-6 shadow-xl`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
@@ -139,22 +166,6 @@ export const SupportReportView: React.FC<SupportReportViewProps> = ({
             >
               <Download className="w-3.5 h-3.5" />
               <span>Скачать .TXT</span>
-            </button>
-
-            <button
-              onClick={handleShareTelegram}
-              className={btnOutlineSm}
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>Telegram</span>
-            </button>
-
-            <button
-              onClick={handleShareWhatsApp}
-              className={btnOutlineSm}
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>WhatsApp</span>
             </button>
           </div>
         </div>

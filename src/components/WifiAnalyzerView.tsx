@@ -13,7 +13,9 @@ import {
   Check,
   Search,
   Filter,
-  Info
+  Info,
+  WifiOff,
+  Settings
 } from 'lucide-react';
 import { CurrentWifiMetrics, AccessPoint } from '../types/wifi';
 import { SignalValue } from './SignalValue';
@@ -33,6 +35,7 @@ interface WifiAnalyzerViewProps {
   onOpenTerm: (termId: string) => void;
   lastUpdated?: Date | null;
   onRefresh?: () => void;
+  onOpenWifiSettings?: () => void;
 }
 
 interface SsidGroup {
@@ -54,7 +57,8 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
   visibleAps,
   onOpenTerm,
   lastUpdated,
-  onRefresh
+  onRefresh,
+  onOpenWifiSettings
 }) => {
   const { isDark, cardBg, cardSubtle, btnOutlineSm, btnActive, inputClass } = useTheme();
 
@@ -133,7 +137,9 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
 
       const deviceCount = devices.length;
       const hasMultipleDevices = deviceCount > 1;
-      const isCurrent = devices.some(d => d.isCurrent || (wifi.bssid && d.bssid.toLowerCase() === wifi.bssid.toLowerCase()));
+      const isCurrent = wifi.wifiConnected
+        ? devices.some(d => d.isCurrent || (wifi.bssid && d.bssid.toLowerCase() === wifi.bssid.toLowerCase()))
+        : false;
       const bestRssi = Math.max(...devices.map(d => d.rssi));
       const worstRssi = Math.min(...devices.map(d => d.rssi));
       const bands = Array.from(new Set(devices.map(d => d.band)));
@@ -235,137 +241,189 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
         </div>
       </div>
 
-      {/* Верхние 4 карточки параметров текущей сети */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 landscape:grid-cols-2 sm:landscape:grid-cols-4 gap-3 sm:gap-4">
-        <div className={`${cardBg} rounded-3xl p-3.5 sm:p-4 relative group`}>
-          <div className="flex items-center justify-between text-xs mb-2 opacity-80">
-            <span className="flex items-center gap-1.5 font-medium">
-              <Signal className="w-4 h-4" />
-              <span className="hidden xs:inline">МОЩНОСТЬ</span>
-              <span className="xs:hidden">RSSI</span>
-            </span>
-            <button
-              onClick={() => onOpenTerm('rssi')}
-              className={`${isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-500 hover:text-zinc-900'} transition-colors`}
-              title="Что такое RSSI простыми словами?"
-            >
-              <HelpCircle className="w-4 h-4" />
-            </button>
-          </div>
+      {/* Статус подключения к Wi-Fi: если не подключено — никаких заглушек, только ясное сообщение и кнопка перехода в настройки */}
+      {!wifi.wifiConnected ? (
+        <div className={`rounded-3xl p-5 sm:p-6 border transition-all ${
+          isDark
+            ? 'bg-amber-950/25 border-amber-500/40 text-amber-100 shadow-xl'
+            : 'bg-amber-50/95 border-amber-300 text-amber-950 shadow-md'
+        }`}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center flex-shrink-0 text-amber-500 shadow-sm mt-0.5">
+                <WifiOff className="w-6 h-6 stroke-[2.5]" />
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-base sm:text-lg font-black tracking-tight">
+                    Wi‑Fi не подключен
+                  </h3>
+                  <span className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border ${
+                    wifi.usingMobileInternet
+                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                  }`}>
+                    {wifi.usingMobileInternet ? 'Мобильная сеть передачи данных (LTE/5G)' : 'Беспроводная сеть отключена'}
+                  </span>
+                </div>
+                <p className={`text-xs leading-relaxed ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                  {wifi.usingMobileInternet
+                    ? 'Устройство использует передачу данных по сотовой сети. Параметры домашней сети Wi‑Fi (мощность передатчика, затухание в стенах, занятые каналы и скорость линка) недоступны без подключения к Wi‑Fi роутеру или точке доступа.'
+                    : 'Устройство не подключено ни к одной беспроводной сети Wi‑Fi. Для работы анализатора радиоэфира и оценки качества связи подключитесь к домашней или офисной сети.'}
+                </p>
+                <div className={`text-[11px] font-mono flex items-center gap-2 pt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                  <span>Точек доступа в эфире: <strong className={isDark ? 'text-white' : 'text-zinc-900'}>{visibleAps.length}</strong></span>
+                  <span>•</span>
+                  <span>Фиктивные заглушки отключены</span>
+                </div>
+              </div>
+            </div>
 
-          <div className="flex items-baseline gap-2">
-            <span className={`text-3xl font-black font-mono ${signalTextClass(wifi.rssi)}`}>{wifi.rssi}</span>
-            <span className={`text-sm font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>дБм</span>
-            <span className={`text-xs font-mono ml-auto ${signalTextClass(wifi.rssi)}`}>({wifi.signalPercent}%)</span>
+            {onOpenWifiSettings && (
+              <button
+                type="button"
+                onClick={onOpenWifiSettings}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-zinc-950 font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
+              >
+                <Settings className="w-4 h-4" />
+                <span>Подключиться к Wi‑Fi</span>
+              </button>
+            )}
           </div>
-
-          <div className={`w-full rounded-full h-2 my-2.5 overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-200'}`}>
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${signalBarClass(wifi.rssi)}`}
-              style={{ width: `${wifi.signalPercent}%` }}
-            />
-          </div>
-
-          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border inline-block ${signalBadgeClass(wifi.rssi)}`}>
-            {signalLabel(wifi.rssi)}
-          </span>
         </div>
+      ) : (
+        /* Верхние 4 карточки параметров текущей сети (только когда Wi-Fi реально подключен) */
+        <div className="grid grid-cols-2 lg:grid-cols-4 landscape:grid-cols-2 sm:landscape:grid-cols-4 gap-3 sm:gap-4">
+          <div className={`${cardBg} rounded-3xl p-3.5 sm:p-4 relative group`}>
+            <div className="flex items-center justify-between text-xs mb-2 opacity-80">
+              <span className="flex items-center gap-1.5 font-medium">
+                <Signal className="w-4 h-4" />
+                <span className="hidden xs:inline">МОЩНОСТЬ</span>
+                <span className="xs:hidden">RSSI</span>
+              </span>
+              <button
+                onClick={() => onOpenTerm('rssi')}
+                className={`${isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-500 hover:text-zinc-900'} transition-colors`}
+                title="Что такое RSSI простыми словами?"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+            </div>
 
-        <div className={`${cardBg} rounded-3xl p-4 relative group`}>
-          <div className="flex items-center justify-between text-xs mb-2 opacity-80">
-            <span className="flex items-center gap-1.5 font-medium">
-              <Gauge className="w-4 h-4" />
-              <span>СКОРОСТЬ ЛИНКА</span>
+            <div className="flex items-baseline gap-2">
+              <span className={`text-3xl font-black font-mono ${signalTextClass(wifi.rssi)}`}>{wifi.rssi}</span>
+              <span className={`text-sm font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>дБм</span>
+              <span className={`text-xs font-mono ml-auto ${signalTextClass(wifi.rssi)}`}>({wifi.signalPercent}%)</span>
+            </div>
+
+            <div className={`w-full rounded-full h-2 my-2.5 overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-200'}`}>
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${signalBarClass(wifi.rssi)}`}
+                style={{ width: `${wifi.signalPercent}%` }}
+              />
+            </div>
+
+            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border inline-block ${signalBadgeClass(wifi.rssi)}`}>
+              {signalLabel(wifi.rssi)}
             </span>
-            <button
-              onClick={() => onOpenTerm('link_speed')}
-              className={`${isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-500 hover:text-zinc-900'} transition-colors`}
-              title="Что такое Link Speed?"
-            >
-              <HelpCircle className="w-4 h-4" />
-            </button>
           </div>
 
-          <div className="flex items-baseline gap-2">
-            <span className={`text-3xl font-black font-mono ${isDark ? 'text-white' : 'text-zinc-900'}`}>{wifi.linkSpeedTxMbps}</span>
-            <span className={`text-sm font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Мбит/с</span>
+          <div className={`${cardBg} rounded-3xl p-4 relative group`}>
+            <div className="flex items-center justify-between text-xs mb-2 opacity-80">
+              <span className="flex items-center gap-1.5 font-medium">
+                <Gauge className="w-4 h-4" />
+                <span>СКОРОСТЬ ЛИНКА</span>
+              </span>
+              <button
+                onClick={() => onOpenTerm('link_speed')}
+                className={`${isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-500 hover:text-zinc-900'} transition-colors`}
+                title="Что такое Link Speed?"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <span className={`text-3xl font-black font-mono ${isDark ? 'text-white' : 'text-zinc-900'}`}>{wifi.linkSpeedTxMbps}</span>
+              <span className={`text-sm font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Мбит/с</span>
+            </div>
+
+            <div className={`text-xs mt-2 font-mono flex justify-between ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              <span>Tx (Передача): {wifi.linkSpeedTxMbps} Мб/с</span>
+              <span>Rx (Прием): {wifi.linkSpeedRxMbps} Мб/с</span>
+            </div>
+
+            <p className={`text-[10px] mt-2 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+              Теоретический предел радиоканала
+            </p>
           </div>
 
-          <div className={`text-xs mt-2 font-mono flex justify-between ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-            <span>Tx (Передача): {wifi.linkSpeedTxMbps} Мб/с</span>
-            <span>Rx (Прием): {wifi.linkSpeedRxMbps} Мб/с</span>
+          <div className={`${cardBg} rounded-3xl p-4 relative group`}>
+            <div className="flex items-center justify-between text-xs mb-2 opacity-80">
+              <span className="flex items-center gap-1.5 font-medium">
+                <Radio className="w-4 h-4" />
+                <span>ДИАПАЗОН И КАНАЛ</span>
+              </span>
+              <button
+                onClick={() => onOpenTerm('bands_24_5')}
+                className={`${isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-500 hover:text-zinc-900'} transition-colors`}
+                title="2.4 vs 5 ГГц"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <span className={`text-3xl font-black font-mono ${isDark ? 'text-white' : 'text-zinc-900'}`}>{wifi.channel}</span>
+              <span className="text-sm font-semibold opacity-80">канал</span>
+              <span className={`text-xs font-mono ml-auto ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>({wifi.frequency} МГц)</span>
+            </div>
+
+            <div className="flex items-center gap-2 mt-2">
+              <span className={`text-xs px-2 py-0.5 rounded font-bold border ${isDark ? 'bg-zinc-800 text-white border-zinc-700' : 'bg-zinc-100 text-zinc-900 border-zinc-300'}`}>
+                {wifi.band}
+              </span>
+              <span className={`text-xs px-2 py-0.5 rounded font-mono border ${isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-zinc-100 text-zinc-700 border-zinc-300'}`}>
+                {wifi.channelWidth}
+              </span>
+            </div>
+
+            <p className={`text-[10px] mt-2 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+              Полоса пропускания радиоэфира
+            </p>
           </div>
 
-          <p className={`text-[10px] mt-2 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
-            Теоретический предел радиоканала
-          </p>
+          <div className={`${cardBg} rounded-3xl p-4 relative group`}>
+            <div className="flex items-center justify-between text-xs mb-2 opacity-80">
+              <span className="flex items-center gap-1.5 font-medium">
+                <Cpu className="w-4 h-4" />
+                <span>ПОКОЛЕНИЕ WI-FI</span>
+              </span>
+              <button
+                onClick={() => onOpenTerm('channel_width')}
+                className={`${isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-500 hover:text-zinc-900'} transition-colors`}
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className={`text-2xl font-black font-mono ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+              {wifi.standard}
+            </div>
+
+            <div className={`text-xs mt-2 flex justify-between font-mono ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              <span>Шум: {wifi.noiseEstimateDbm} дБм</span>
+              <span className="font-bold">SNR: {wifi.snrDb} дБ</span>
+            </div>
+
+            <p className={`text-[10px] mt-2 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+              {wifi.coChannelApCount > 0
+                ? `⚠️ На канале ${wifi.channel} еще ${wifi.coChannelApCount} сетей`
+                : '✅ Канал свободен от помех'}
+            </p>
+          </div>
         </div>
-
-        <div className={`${cardBg} rounded-3xl p-4 relative group`}>
-          <div className="flex items-center justify-between text-xs mb-2 opacity-80">
-            <span className="flex items-center gap-1.5 font-medium">
-              <Radio className="w-4 h-4" />
-              <span>ДИАПАЗОН И КАНАЛ</span>
-            </span>
-            <button
-              onClick={() => onOpenTerm('bands_24_5')}
-              className={`${isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-500 hover:text-zinc-900'} transition-colors`}
-              title="2.4 vs 5 ГГц"
-            >
-              <HelpCircle className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex items-baseline gap-2">
-            <span className={`text-3xl font-black font-mono ${isDark ? 'text-white' : 'text-zinc-900'}`}>{wifi.channel}</span>
-            <span className="text-sm font-semibold opacity-80">канал</span>
-            <span className={`text-xs font-mono ml-auto ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>({wifi.frequency} МГц)</span>
-          </div>
-
-          <div className="flex items-center gap-2 mt-2">
-            <span className={`text-xs px-2 py-0.5 rounded font-bold border ${isDark ? 'bg-zinc-800 text-white border-zinc-700' : 'bg-zinc-100 text-zinc-900 border-zinc-300'}`}>
-              {wifi.band}
-            </span>
-            <span className={`text-xs px-2 py-0.5 rounded font-mono border ${isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-zinc-100 text-zinc-700 border-zinc-300'}`}>
-              {wifi.channelWidth}
-            </span>
-          </div>
-
-          <p className={`text-[10px] mt-2 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
-            Полоса пропускания радиоэфира
-          </p>
-        </div>
-
-        <div className={`${cardBg} rounded-3xl p-4 relative group`}>
-          <div className="flex items-center justify-between text-xs mb-2 opacity-80">
-            <span className="flex items-center gap-1.5 font-medium">
-              <Cpu className="w-4 h-4" />
-              <span>ПОКОЛЕНИЕ WI-FI</span>
-            </span>
-            <button
-              onClick={() => onOpenTerm('channel_width')}
-              className={`${isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-500 hover:text-zinc-900'} transition-colors`}
-            >
-              <HelpCircle className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className={`text-2xl font-black font-mono ${isDark ? 'text-white' : 'text-zinc-900'}`}>
-            {wifi.standard}
-          </div>
-
-          <div className={`text-xs mt-2 flex justify-between font-mono ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-            <span>Шум: {wifi.noiseEstimateDbm} дБм</span>
-            <span className="font-bold">SNR: {wifi.snrDb} дБ</span>
-          </div>
-
-          <p className={`text-[10px] mt-2 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
-            {wifi.coChannelApCount > 0
-              ? `⚠️ На канале ${wifi.channel} еще ${wifi.coChannelApCount} сетей`
-              : '✅ Канал свободен от помех'}
-          </p>
-        </div>
-      </div>
+      )}
 
       {/* Спектральный анализатор радиоэфира */}
       <div className={`${cardBg} rounded-3xl p-6 shadow-xl`}>

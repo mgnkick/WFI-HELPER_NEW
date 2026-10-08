@@ -12,6 +12,10 @@ export function jitterAccessPoints(aps: AccessPoint[]): AccessPoint[] {
 }
 
 export function jitterCurrentWifi(wifi: CurrentWifiMetrics, aps: AccessPoint[]): CurrentWifiMetrics {
+  // Если Wi-Fi не подключен — никаких случайных колебаний или симуляций параметров не производим
+  if (!wifi.wifiConnected) {
+    return wifi;
+  }
   const currentAp = aps.find(ap => ap.isCurrent) || aps[0];
   const rssi = currentAp ? currentAp.rssi : Math.max(-95, Math.min(-30, wifi.rssi + Math.round(Math.random() * 4 - 2)));
   const coChannelApCount = aps.filter(ap => ap.channel === wifi.channel && !ap.isCurrent).length;
@@ -21,6 +25,45 @@ export function jitterCurrentWifi(wifi: CurrentWifiMetrics, aps: AccessPoint[]):
     signalPercent: rssiToPercent(rssi),
     snrDb: Math.max(1, rssi - wifi.noiseEstimateDbm),
     coChannelApCount
+  };
+}
+
+export function createDisconnectedWifiMetrics(
+  usingMobileInternet: boolean = false,
+  vpnActive: boolean = false,
+  vpnInterfaceName?: string,
+  externalIp?: string
+): CurrentWifiMetrics {
+  return {
+    ssid: 'Wi-Fi не подключен',
+    bssid: '',
+    rssi: -100,
+    signalPercent: 0,
+    frequency: 0,
+    channel: 0,
+    band: '2.4GHz',
+    channelWidth: '20MHz',
+    standard: '802.11n',
+    linkSpeedTxMbps: 0,
+    linkSpeedRxMbps: 0,
+    noiseEstimateDbm: -95,
+    snrDb: 0,
+    coChannelApCount: 0,
+    ipAddress: '',
+    subnetMask: '',
+    gateway: '',
+    dnsServers: [],
+    externalIp,
+    ispName: usingMobileInternet ? 'Мобильный интернет' : undefined,
+    wifiConnected: false,
+    usingMobileInternet: !!usingMobileInternet,
+    vpn: {
+      isActive: vpnActive,
+      interfaceName: vpnInterfaceName,
+      warningNote: vpnActive
+        ? 'ВНИМАНИЕ: В системе активен VPN!'
+        : 'VPN выключен.'
+    }
   };
 }
 
@@ -44,12 +87,13 @@ export async function fetchNativeWifiSnapshot(): Promise<{
 
   try {
     const snap = await WifiHelper.getSnapshot();
+    const isConnected = !!snap.wifiConnected;
     return {
-      wifiConnected: !!snap.wifiConnected,
+      wifiConnected: isConnected,
       usingMobileInternet: !!snap.usingMobileInternet,
       vpnActive: snap.vpnActive,
       vpnInterfaceName: snap.vpnInterfaceName,
-      current: snap.current || null,
+      current: isConnected ? (snap.current || null) : null,
       accessPoints: Array.isArray(snap.accessPoints) ? snap.accessPoints : []
     };
   } catch (err) {
@@ -67,16 +111,33 @@ export function mergeNativeIntoWifi(
   vpnActive?: boolean,
   vpnInterfaceName?: string
 ): CurrentWifiMetrics {
-  const rssi = current?.rssi ?? prev.rssi;
-  const channel = current?.channel ?? prev.channel;
-  const coChannelApCount = aps.filter(ap => ap.channel === channel && !ap.isCurrent).length;
-
   const isVpnOn = vpnActive !== undefined ? vpnActive : prev.vpn.isActive;
   const iface = vpnInterfaceName || prev.vpn.interfaceName || 'tun0';
+
+  // ЕСЛИ WI-FI НЕ ПОДКЛЮЧЕН — НИКАКИХ ЗАГЛУШЕК НЕ ОТОБРАЖАТЬ!
+  // Полностью очищаем параметры несуществующего радиолинка.
+  if (!wifiConnected) {
+    return createDisconnectedWifiMetrics(
+      usingMobileInternet,
+      isVpnOn,
+      iface,
+      prev.externalIp
+    );
+  }
+
+  const rssi = current?.rssi ?? (prev.rssi !== -100 ? prev.rssi : -50);
+  const channel = current?.channel ?? (prev.channel > 0 ? prev.channel : 1);
+  const coChannelApCount = aps.filter(ap => ap.channel === channel && !ap.isCurrent).length;
 
   return {
     ...prev,
     ...current,
+    wifiConnected: true,
+    usingMobileInternet: false,
+    rssi,
+    signalPercent: current?.signalPercent ?? rssiToPercent(rssi),
+    coChannelApCount,
+    ssid: current?.ssid || (prev.ssid !== 'Wi-Fi не подключен' && prev.ssid !== 'Не подключено' ? prev.ssid : 'Подключенная сеть'),
     vpn: {
       ...prev.vpn,
       isActive: isVpnOn,
@@ -85,12 +146,6 @@ export function mergeNativeIntoWifi(
       warningNote: isVpnOn
         ? 'ВНИМАНИЕ: В системе активен VPN! Скорость и задержка ограничены удаленным туннелем, а не вашим интернет-провайдером!'
         : 'VPN выключен. Трафик идет напрямую к вашему провайдеру без посторонних ограничений.'
-    },
-    wifiConnected,
-    usingMobileInternet,
-    rssi,
-    signalPercent: current?.signalPercent ?? rssiToPercent(rssi),
-    coChannelApCount,
-    ssid: wifiConnected ? (current?.ssid || prev.ssid) : 'Нет подключения Wi‑Fi'
+    }
   };
 }
