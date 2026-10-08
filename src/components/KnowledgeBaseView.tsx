@@ -134,11 +134,11 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
 
       {/* 2. СПИСОК ТЕРМИНОВ (АККОРДЕОН) */}
       <div className="space-y-3">
-        {/* Фильтры категорий */}
-        <div className="flex flex-wrap items-center gap-1.5 pb-1">
+        {/* Фильтры категорий: горизонтальная прокрутка в стороны как в верхнем меню */}
+        <div className="flex items-center gap-1.5 pb-1.5 overflow-x-auto scroll-menu-x w-full flex-nowrap">
           <button
             onClick={() => setCategoryFilter('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
               categoryFilter === 'all'
                 ? isDark
                   ? 'bg-white text-zinc-950 border-white font-bold'
@@ -153,7 +153,7 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
 
           <button
             onClick={() => setCategoryFilter('hardware')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
               categoryFilter === 'hardware'
                 ? isDark
                   ? 'bg-white text-zinc-950 border-white font-bold'
@@ -168,7 +168,7 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
 
           <button
             onClick={() => setCategoryFilter('wifi')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
               categoryFilter === 'wifi'
                 ? isDark
                   ? 'bg-white text-zinc-950 border-white font-bold'
@@ -183,7 +183,7 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
 
           <button
             onClick={() => setCategoryFilter('cellular')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
               categoryFilter === 'cellular'
                 ? isDark
                   ? 'bg-white text-zinc-950 border-white font-bold'
@@ -198,7 +198,7 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
 
           <button
             onClick={() => setCategoryFilter('physics')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
               categoryFilter === 'physics'
                 ? isDark
                   ? 'bg-white text-zinc-950 border-white font-bold'

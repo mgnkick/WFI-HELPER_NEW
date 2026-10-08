@@ -236,102 +236,102 @@ export const RecommendationsView: React.FC<RecommendationsViewProps> = ({ wifi, 
 
       {/* Блок практических рекомендаций: по 3 штуки со случайным чередованием */}
       <div className="space-y-4">
-        {/* Панель фильтров категорий и кнопка перемешивания */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b pb-3 border-zinc-800">
-          <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+        {/* Панель фильтров категорий и кнопка перемешивания: горизонтальная прокрутка в стороны */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b pb-3 border-zinc-800">
+          <div className="flex items-center gap-1.5 text-xs font-semibold overflow-x-auto pb-1.5 sm:pb-0 scroll-menu-x w-full sm:w-auto">
             <button
               onClick={() => handleCategoryChange('all')}
-              className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                 activeCategory === 'all'
                   ? isDark
-                    ? 'bg-white text-zinc-950 border-white font-bold'
-                    : 'bg-zinc-900 text-white border-zinc-900 font-bold'
+                    ? 'bg-white text-zinc-950 border-white font-bold shadow-sm'
+                    : 'bg-zinc-900 text-white border-zinc-900 font-bold shadow-sm'
                   : isDark
                     ? 'border-zinc-800 text-zinc-400 hover:text-white'
                     : 'border-zinc-300 text-zinc-600 hover:text-zinc-900'
               }`}
             >
-              <Layers className="w-3.5 h-3.5" />
+              <Layers className="w-3.5 h-3.5 flex-shrink-0" />
               <span>Все ({allAdvice.length})</span>
             </button>
 
             <button
               onClick={() => handleCategoryChange('hardware')}
-              className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                 activeCategory === 'hardware'
                   ? isDark
-                    ? 'bg-white text-zinc-950 border-white font-bold'
-                    : 'bg-zinc-900 text-white border-zinc-900 font-bold'
+                    ? 'bg-white text-zinc-950 border-white font-bold shadow-sm'
+                    : 'bg-zinc-900 text-white border-zinc-900 font-bold shadow-sm'
                   : isDark
                     ? 'border-zinc-800 text-zinc-400 hover:text-white'
                     : 'border-zinc-300 text-zinc-600 hover:text-zinc-900'
               }`}
             >
-              <Router className="w-3.5 h-3.5" />
+              <Router className="w-3.5 h-3.5 flex-shrink-0" />
               <span>Оборудование и Mesh ({allAdvice.filter(a => a.category === 'hardware').length})</span>
             </button>
 
             <button
               onClick={() => handleCategoryChange('wifi')}
-              className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                 activeCategory === 'wifi'
                   ? isDark
-                    ? 'bg-white text-zinc-950 border-white font-bold'
-                    : 'bg-zinc-900 text-white border-zinc-900 font-bold'
+                    ? 'bg-white text-zinc-950 border-white font-bold shadow-sm'
+                    : 'bg-zinc-900 text-white border-zinc-900 font-bold shadow-sm'
                   : isDark
                     ? 'border-zinc-800 text-zinc-400 hover:text-white'
                     : 'border-zinc-300 text-zinc-600 hover:text-zinc-900'
               }`}
             >
-              <Radio className="w-3.5 h-3.5" />
+              <Radio className="w-3.5 h-3.5 flex-shrink-0" />
               <span>Wi‑Fi радио ({allAdvice.filter(a => a.category === 'wifi' || !a.category).length})</span>
             </button>
 
             <button
               onClick={() => handleCategoryChange('cellular')}
-              className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                 activeCategory === 'cellular'
                   ? isDark
-                    ? 'bg-white text-zinc-950 border-white font-bold'
-                    : 'bg-zinc-900 text-white border-zinc-900 font-bold'
+                    ? 'bg-white text-zinc-950 border-white font-bold shadow-sm'
+                    : 'bg-zinc-900 text-white border-zinc-900 font-bold shadow-sm'
                   : isDark
                     ? 'border-zinc-800 text-zinc-400 hover:text-white'
                     : 'border-zinc-300 text-zinc-600 hover:text-zinc-900'
               }`}
             >
-              <Smartphone className="w-3.5 h-3.5" />
+              <Smartphone className="w-3.5 h-3.5 flex-shrink-0" />
               <span>4G/5G и связь ({allAdvice.filter(a => a.category === 'cellular').length})</span>
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scroll-menu-x flex-shrink-0">
             {/* Кнопка "Перемешать (другие 3)" */}
             <button
               onClick={handleShuffle}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 cursor-pointer transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 cursor-pointer transition-all whitespace-nowrap flex-shrink-0 ${
                 isDark
                   ? 'border-zinc-700 bg-zinc-800/80 text-white hover:bg-zinc-700'
                   : 'border-zinc-300 bg-zinc-100 text-zinc-900 hover:bg-zinc-200'
               }`}
               title="Перемешать и показать другие 3 случайные рекомендации"
             >
-              <Dices className={`w-3.5 h-3.5 ${isRotating ? 'animate-spin text-amber-500' : ''}`} />
+              <Dices className={`w-3.5 h-3.5 flex-shrink-0 ${isRotating ? 'animate-spin text-amber-500' : ''}`} />
               <span>Другие 3 совета</span>
             </button>
 
             {/* Кнопка переключения: Показать все / Свернуть (по 3) */}
             <button
               onClick={() => setShowAllAdvice(!showAllAdvice)}
-              className={`${btnOutlineSm} text-xs flex items-center gap-1.5`}
+              className={`${btnOutlineSm} text-xs flex items-center gap-1.5 whitespace-nowrap flex-shrink-0`}
             >
               {showAllAdvice ? (
                 <>
-                  <ChevronUp className="w-3.5 h-3.5" />
+                  <ChevronUp className="w-3.5 h-3.5 flex-shrink-0" />
                   <span>Свернуть (по 3)</span>
                 </>
               ) : (
                 <>
-                  <ChevronDown className="w-3.5 h-3.5" />
+                  <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />
                   <span>Все советы ({categoryPool.length})</span>
                 </>
               )}

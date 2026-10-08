@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
+import android.net.DhcpInfo;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.wifi.ScanResult;
@@ -116,10 +117,10 @@ public class WifiHelperPlugin extends Plugin {
                         && !info.getSSID().equals("0x");
 
                     if (wifiConnected && hasValidLink) {
-                        current = wifiInfoToJson(info);
+                        current = wifiInfoToJson(info, wifiManager);
                     } else if (hasValidLink) {
                         wifiConnected = true;
-                        current = wifiInfoToJson(info);
+                        current = wifiInfoToJson(info, wifiManager);
                     } else {
                         wifiConnected = false;
                         current = null;
@@ -249,7 +250,7 @@ public class WifiHelperPlugin extends Plugin {
         });
     }
 
-    private JSObject wifiInfoToJson(WifiInfo info) {
+    private JSObject wifiInfoToJson(WifiInfo info, WifiManager wifiManager) {
         JSObject o = new JSObject();
         String ssid = info.getSSID();
         if (ssid == null || ssid.equals("<unknown ssid>") || ssid.equals("0x")) {
@@ -280,6 +281,23 @@ public class WifiHelperPlugin extends Plugin {
         o.put("noiseEstimateDbm", -95);
         o.put("snrDb", Math.max(1, rssi + 95));
         o.put("ipAddress", intToIp(info.getIpAddress()));
+
+        String gateway = "";
+        String netmask = "";
+        if (wifiManager != null) {
+            try {
+                DhcpInfo dhcp = wifiManager.getDhcpInfo();
+                if (dhcp != null && dhcp.gateway != 0) {
+                    gateway = intToIp(dhcp.gateway);
+                }
+                if (dhcp != null && dhcp.netmask != 0) {
+                    netmask = intToIp(dhcp.netmask);
+                }
+            } catch (Exception ignored) {}
+        }
+        o.put("gateway", gateway);
+        o.put("subnetMask", netmask);
+
         return o;
     }
 

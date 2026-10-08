@@ -179,17 +179,17 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
               <p className="text-xs leading-relaxed opacity-90">
                 Обнаружено мобильное соединение (LTE/5G) либо беспроводная сеть отключена. Замер скорости израсходует трафик вашего сотового тарифа (около 40–80 МБ). Вы можете подключиться к домашнему Wi‑Fi для проверки тарифа провайдера, либо продолжить через сотовую связь.
               </p>
-              <div className="flex flex-wrap items-center gap-2.5 pt-1">
+              <div className="flex items-center gap-2.5 pt-1 overflow-x-auto scroll-menu-x pb-1 w-full flex-nowrap">
                 <button
                   onClick={handleOpenWifiSettings}
-                  className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-zinc-950 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+                  className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-zinc-950 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md whitespace-nowrap flex-shrink-0"
                 >
                   <Settings className="w-4 h-4" />
                   <span>Подключиться к Wi‑Fi</span>
                 </button>
                 <button
                   onClick={() => setUseCellularConfirmed(true)}
-                  className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${
+                  className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border whitespace-nowrap flex-shrink-0 ${
                     isDark
                       ? 'border-white text-white hover:bg-white/10'
                       : 'border-zinc-900 text-zinc-900 hover:bg-zinc-900/10'
@@ -235,11 +235,11 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          <div className="flex items-center gap-2.5 overflow-x-auto scroll-menu-x pb-1 w-full md:w-auto flex-nowrap">
             {/* Кнопка 1: Яндекс Интернетометр */}
             <button
               onClick={handleOpenYandexExternal}
-              className={`${btnOutline} flex-1 sm:flex-initial`}
+              className={`${btnOutline} whitespace-nowrap flex-shrink-0`}
               title="Открыть Яндекс Интернетометр в браузере"
             >
               <Globe className="w-4 h-4" />
@@ -250,7 +250,7 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
             {/* Кнопка 2: 2IP.ru Замер скорости */}
             <button
               onClick={handleOpen2ipExternal}
-              className={`${btnOutline} flex-1 sm:flex-initial`}
+              className={`${btnOutline} whitespace-nowrap flex-shrink-0`}
               title="Открыть 2IP.ru в браузере"
             >
               <Globe className="w-4 h-4" />
@@ -295,11 +295,11 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto scroll-menu-x pb-0.5 flex-nowrap">
             {/* Кнопка обновления окна */}
             <button
               onClick={handleReloadIframe}
-              className={btnOutlineSm}
+              className={`${btnOutlineSm} whitespace-nowrap flex-shrink-0`}
               title="Перезагрузить встроенное окно"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isIframeLoading ? 'animate-spin' : ''}`} />
@@ -309,7 +309,7 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
             {/* Кнопка развертывания на весь экран */}
             <button
               onClick={handleOpenFullscreen}
-              className={btnOutlineSm}
+              className={`${btnOutlineSm} whitespace-nowrap flex-shrink-0`}
               title="Развернуть окно на весь экран"
             >
               <Maximize2 className="w-3.5 h-3.5" />

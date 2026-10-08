@@ -77,3 +77,16 @@ html.light ::-webkit-scrollbar-thumb {
 html.light ::-webkit-scrollbar-thumb:hover {
   background: #a1a1aa;
 }
+
+/* Горизонтальное меню с плавной прокруткой в стороны на тач-устройствах */
+.scroll-menu-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.scroll-menu-x::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}

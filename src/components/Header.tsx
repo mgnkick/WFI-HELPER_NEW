@@ -8,7 +8,8 @@ import {
   Heart,
   Sun,
   Moon,
-  WifiOff
+  WifiOff,
+  Router
 } from 'lucide-react';
 import { CurrentWifiMetrics } from '../types/wifi';
 import { useTheme } from '../context/ThemeContext';
@@ -32,17 +33,29 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { isDark, toggleTheme } = useTheme();
 
+  // Открытие веб-интерфейса настройки роутера по адресу основного шлюза
+  const isWifiActive = !!currentWifi.wifiConnected;
+  const routerGatewayIp = (currentWifi.gateway && currentWifi.gateway !== '0.0.0.0')
+    ? currentWifi.gateway
+    : '192.168.1.1';
+
+  const handleOpenRouterSettings = () => {
+    if (!isWifiActive) return;
+    const url = `http://${routerGatewayIp}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <header className={`sticky top-0 z-40 backdrop-blur-md transition-colors w-full pt-[max(env(safe-area-inset-top,0px),14px)] sm:pt-4 ${
       isDark
         ? 'bg-zinc-900/95 border-b border-zinc-800 text-zinc-100'
         : 'bg-white/95 border-b border-zinc-200 text-zinc-900 shadow-sm'
     }`}>
-      <div className="max-w-[540px] sm:max-w-[560px] mx-auto px-3 sm:px-4 pt-1 sm:pt-1.5 pb-2 sm:pb-2.5 transition-all">
-        {/* Верхняя строка: Логотип, текущий статус сети и переключатель темы (спущен ниже полосы индикаторов) */}
+      <div className="max-w-5xl mx-auto px-3 sm:px-4 md:px-6 pt-1 sm:pt-1.5 pb-2 sm:pb-2.5 transition-all">
+        {/* Верхняя строка: Логотип, текущий статус сети и переключатель темы */}
         <div className="flex items-center justify-between gap-2 sm:gap-3 pt-1">
           {/* Бренд */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
             <div className={`w-8 h-8 sm:w-10 sm:h-10 landscape:w-7 landscape:h-7 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 transition-all ${
               isDark
                 ? 'bg-zinc-800 border border-white text-white shadow-md'
@@ -69,14 +82,14 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Правая панель: Текущий Wi-Fi статус и Переключатель темы */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 font-mono text-xs">
+          {/* Правая панель: Текущий Wi-Fi статус, роутер и переключатель темы (никогда не вылезает за пределы) */}
+          <div className="flex items-center gap-1.5 sm:gap-2 font-mono text-xs flex-shrink-0 min-w-0">
             {/* Wi-Fi статус: ясно показываем статус или отсутствие подключения */}
             {!currentWifi.wifiConnected ? (
               <button
                 type="button"
                 onClick={onOpenWifiSettings}
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl flex items-center gap-1.5 sm:gap-2 border transition-all cursor-pointer ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl flex items-center gap-1.5 border transition-all cursor-pointer flex-shrink-0 whitespace-nowrap ${
                   isDark
                     ? 'bg-amber-950/40 border-amber-500/50 text-amber-300 hover:bg-amber-950/60'
                     : 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100 shadow-sm'
@@ -92,28 +105,58 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </button>
             ) : (
-              <div className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl flex items-center gap-1.5 sm:gap-2 border transition-colors ${
+              <div className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl flex items-center gap-1.5 border transition-colors flex-shrink min-w-0 ${
                 isDark
                   ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300'
                   : 'bg-zinc-50 border-zinc-200 text-zinc-700'
               }`}>
-                <Radio className={`w-3 h-3 sm:w-3.5 sm:h-3.5 animate-pulse ${isDark ? 'text-white' : 'text-zinc-900'}`} />
-                <span className={`font-bold max-w-[90px] sm:max-w-[180px] truncate text-[11px] sm:text-xs ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                <Radio className={`w-3 h-3 sm:w-3.5 sm:h-3.5 animate-pulse flex-shrink-0 ${isDark ? 'text-white' : 'text-zinc-900'}`} />
+                <span
+                  className={`font-bold max-w-[70px] xs:max-w-[110px] sm:max-w-[160px] md:max-w-[220px] truncate text-[11px] sm:text-xs ${isDark ? 'text-white' : 'text-zinc-900'}`}
+                  title={currentWifi.ssid}
+                >
                   {currentWifi.ssid || 'Wi-Fi'}
                 </span>
-                <span className={`text-[10px] sm:text-[11px] font-semibold hidden sm:inline ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                <span className={`text-[10px] sm:text-[11px] font-semibold hidden xs:inline flex-shrink-0 ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
                   {currentWifi.band}
                 </span>
-                <span className={`hidden md:inline text-[10px] sm:text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                <span className={`hidden sm:inline text-[10px] sm:text-[11px] flex-shrink-0 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                   {currentWifi.rssi} дБм
                 </span>
               </div>
             )}
 
+            {/* Кнопка "Настройка роутера" (слева от кнопки переключения темы, активна если Wi-Fi подключен) */}
+            <button
+              type="button"
+              onClick={handleOpenRouterSettings}
+              disabled={!isWifiActive}
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-semibold transition-all flex-shrink-0 whitespace-nowrap ${
+                isWifiActive
+                  ? isDark
+                    ? 'border border-cyan-400/80 bg-cyan-950/30 text-cyan-200 hover:bg-cyan-900/40 active:scale-95 cursor-pointer shadow-sm'
+                    : 'border border-cyan-700 bg-cyan-50 text-cyan-950 hover:bg-cyan-100 active:scale-95 cursor-pointer shadow-sm'
+                  : isDark
+                    ? 'border border-zinc-800 text-zinc-600 bg-zinc-900/50 cursor-not-allowed opacity-50'
+                    : 'border border-zinc-200 text-zinc-400 bg-zinc-100/60 cursor-not-allowed opacity-50'
+              }`}
+              title={
+                isWifiActive
+                  ? `Открыть страницу настройки роутера в браузере (шлюз: ${routerGatewayIp})`
+                  : 'Настройка роутера недоступна: устройство не подключено к Wi‑Fi'
+              }
+              aria-label="Настройка роутера"
+            >
+              <Router className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="hidden md:inline whitespace-nowrap font-sans">
+                Роутер
+              </span>
+            </button>
+
             {/* Переключатель светлой/тёмной темы */}
             <button
               onClick={toggleTheme}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex-shrink-0 whitespace-nowrap ${
                 isDark
                   ? 'border border-white text-white hover:bg-white/10 active:scale-95'
                   : 'border border-zinc-900 text-zinc-900 hover:bg-zinc-900/10 active:scale-95'
@@ -123,13 +166,13 @@ export const Header: React.FC<HeaderProps> = ({
             >
               {isDark ? (
                 <>
-                  <Sun className="w-3.5 h-3.5 text-white" />
-                  <span className="hidden sm:inline font-sans">Светлая</span>
+                  <Sun className="w-3.5 h-3.5 text-white flex-shrink-0" />
+                  <span className="hidden md:inline font-sans whitespace-nowrap">Светлая</span>
                 </>
               ) : (
                 <>
-                  <Moon className="w-3.5 h-3.5 text-zinc-900" />
-                  <span className="hidden sm:inline font-sans">Тёмная</span>
+                  <Moon className="w-3.5 h-3.5 text-zinc-900 flex-shrink-0" />
+                  <span className="hidden md:inline font-sans whitespace-nowrap">Тёмная</span>
                 </>
               )}
             </button>
@@ -137,7 +180,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Навигационные вкладки: Анализатор -> Замер скорости -> Рекомендации -> Отчет -> Справочник */}
-        <nav className="flex items-center gap-1 sm:gap-2 mt-2 landscape:mt-1.5 overflow-x-auto pb-1 text-xs font-semibold scrollbar-none w-full">
+        <nav className="flex items-center gap-1 sm:gap-2 mt-2 landscape:mt-1.5 overflow-x-auto pb-1 text-xs font-semibold scrollbar-none w-full scroll-menu-x">
           {/* 1. Анализатор */}
           <button
             onClick={() => onTabChange('analyzer')}

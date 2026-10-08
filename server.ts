@@ -84,12 +84,30 @@ async function startServer() {
     sendNext();
   });
 
-  // Высокоскоростной эндпоинт замера исходящей скорости
-  app.post('/api/speedtest/upload', express.raw({ type: '*/*', limit: '50mb' }), (req, res) => {
+  // Высокоскоростной эндпоинт замера исходящей скорости (потоковый прием данных без удержания в памяти)
+  app.post('/api/speedtest/upload', (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     res.setHeader('Access-Control-Allow-Origin', '*');
-    const bytesReceived = req.body ? req.body.length : 0;
-    res.json({ received: bytesReceived, status: 'ok' });
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Content-Length');
+
+    let bytesReceived = 0;
+    req.on('data', chunk => {
+      bytesReceived += chunk.length;
+    });
+    req.on('end', () => {
+      res.json({ received: bytesReceived, status: 'ok' });
+    });
+    req.on('error', () => {
+      res.status(500).json({ error: 'Upload stream aborted' });
+    });
+  });
+
+  app.options('/api/speedtest/upload', (_req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Content-Length');
+    res.sendStatus(204);
   });
 
   const isProduction = process.env.NODE_ENV === 'production';

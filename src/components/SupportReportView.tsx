@@ -151,10 +151,10 @@ export const SupportReportView: React.FC<SupportReportViewProps> = ({
             </h4>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 overflow-x-auto scroll-menu-x pb-1 flex-nowrap">
             <button
               onClick={handleCopy}
-              className={btnActive}
+              className={`${btnActive} whitespace-nowrap flex-shrink-0`}
             >
               {copied ? <Check className="w-4 h-4 stroke-[3]" /> : <Copy className="w-4 h-4" />}
               <span>{copied ? 'Скопировано!' : 'Копировать'}</span>
@@ -162,7 +162,7 @@ export const SupportReportView: React.FC<SupportReportViewProps> = ({
 
             <button
               onClick={handleDownloadTxt}
-              className={btnOutlineSm}
+              className={`${btnOutlineSm} whitespace-nowrap flex-shrink-0`}
             >
               <Download className="w-3.5 h-3.5" />
               <span>Скачать .TXT</span>

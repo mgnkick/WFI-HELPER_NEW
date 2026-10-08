@@ -293,13 +293,12 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
         </div>
       ) : (
         /* Верхние 4 карточки параметров текущей сети (только когда Wi-Fi реально подключен) */
-        <div className="grid grid-cols-2 lg:grid-cols-4 landscape:grid-cols-2 sm:landscape:grid-cols-4 gap-3 sm:gap-4">
-          <div className={`${cardBg} rounded-3xl p-3.5 sm:p-4 relative group`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className={`${cardBg} rounded-3xl p-4 relative group`}>
             <div className="flex items-center justify-between text-xs mb-2 opacity-80">
               <span className="flex items-center gap-1.5 font-medium">
                 <Signal className="w-4 h-4" />
-                <span className="hidden xs:inline">МОЩНОСТЬ</span>
-                <span className="xs:hidden">RSSI</span>
+                <span>МОЩНОСТЬ (RSSI)</span>
               </span>
               <button
                 onClick={() => onOpenTerm('rssi')}
@@ -310,10 +309,14 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
               </button>
             </div>
 
-            <div className="flex items-baseline gap-2">
-              <span className={`text-3xl font-black font-mono ${signalTextClass(wifi.rssi)}`}>{wifi.rssi}</span>
-              <span className={`text-sm font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>дБм</span>
-              <span className={`text-xs font-mono ml-auto ${signalTextClass(wifi.rssi)}`}>({wifi.signalPercent}%)</span>
+            <div className="flex items-baseline justify-between gap-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className={`text-2xl sm:text-3xl font-black font-mono ${signalTextClass(wifi.rssi)}`}>{wifi.rssi}</span>
+                <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>дБм</span>
+              </div>
+              <span className={`text-xs font-mono font-bold ${signalTextClass(wifi.rssi)}`}>
+                {wifi.signalPercent}%
+              </span>
             </div>
 
             <div className={`w-full rounded-full h-2 my-2.5 overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-200'}`}>
@@ -343,14 +346,20 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
               </button>
             </div>
 
-            <div className="flex items-baseline gap-2">
-              <span className={`text-3xl font-black font-mono ${isDark ? 'text-white' : 'text-zinc-900'}`}>{wifi.linkSpeedTxMbps}</span>
-              <span className={`text-sm font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Мбит/с</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className={`text-2xl sm:text-3xl font-black font-mono ${isDark ? 'text-white' : 'text-zinc-900'}`}>{wifi.linkSpeedTxMbps}</span>
+              <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Мбит/с</span>
             </div>
 
-            <div className={`text-xs mt-2 font-mono flex justify-between ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-              <span>Tx (Передача): {wifi.linkSpeedTxMbps} Мб/с</span>
-              <span>Rx (Прием): {wifi.linkSpeedRxMbps} Мб/с</span>
+            <div className={`text-[11px] mt-2 font-mono space-y-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              <div className="flex items-center justify-between gap-1">
+                <span className="truncate">Tx (Передача):</span>
+                <span className="font-semibold flex-shrink-0">{wifi.linkSpeedTxMbps} Мб/с</span>
+              </div>
+              <div className="flex items-center justify-between gap-1">
+                <span className="truncate">Rx (Прием):</span>
+                <span className="font-semibold flex-shrink-0">{wifi.linkSpeedRxMbps} Мб/с</span>
+              </div>
             </div>
 
             <p className={`text-[10px] mt-2 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
@@ -373,13 +382,17 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
               </button>
             </div>
 
-            <div className="flex items-baseline gap-2">
-              <span className={`text-3xl font-black font-mono ${isDark ? 'text-white' : 'text-zinc-900'}`}>{wifi.channel}</span>
-              <span className="text-sm font-semibold opacity-80">канал</span>
-              <span className={`text-xs font-mono ml-auto ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>({wifi.frequency} МГц)</span>
+            <div className="flex items-baseline justify-between gap-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className={`text-2xl sm:text-3xl font-black font-mono ${isDark ? 'text-white' : 'text-zinc-900'}`}>{wifi.channel}</span>
+                <span className="text-xs font-semibold opacity-80">канал</span>
+              </div>
+              <span className={`text-[11px] font-mono opacity-80 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                {wifi.frequency} МГц
+              </span>
             </div>
 
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               <span className={`text-xs px-2 py-0.5 rounded font-bold border ${isDark ? 'bg-zinc-800 text-white border-zinc-700' : 'bg-zinc-100 text-zinc-900 border-zinc-300'}`}>
                 {wifi.band}
               </span>
@@ -407,13 +420,19 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
               </button>
             </div>
 
-            <div className={`text-2xl font-black font-mono ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+            <div className={`text-xl sm:text-2xl font-black font-mono tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'}`}>
               {wifi.standard}
             </div>
 
-            <div className={`text-xs mt-2 flex justify-between font-mono ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-              <span>Шум: {wifi.noiseEstimateDbm} дБм</span>
-              <span className="font-bold">SNR: {wifi.snrDb} дБ</span>
+            <div className={`text-[11px] mt-2 font-mono space-y-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              <div className="flex items-center justify-between gap-1">
+                <span>Шум:</span>
+                <span className="font-semibold text-right">{wifi.noiseEstimateDbm} дБм</span>
+              </div>
+              <div className="flex items-center justify-between gap-1">
+                <span>SNR:</span>
+                <span className="font-bold text-emerald-400 text-right">{wifi.snrDb} дБ</span>
+              </div>
             </div>
 
             <p className={`text-[10px] mt-2 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
@@ -444,16 +463,16 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto scroll-menu-x pb-1 w-full sm:w-auto flex-nowrap">
             <button
               onClick={() => setSelectedBandTab('2.4GHz')}
-              className={selectedBandTab === '2.4GHz' ? btnActive : btnOutlineSm}
+              className={`${selectedBandTab === '2.4GHz' ? btnActive : btnOutlineSm} whitespace-nowrap flex-shrink-0`}
             >
               2.4 ГГц (Каналы 1–13)
             </button>
             <button
               onClick={() => setSelectedBandTab('5GHz')}
-              className={selectedBandTab === '5GHz' ? btnActive : btnOutlineSm}
+              className={`${selectedBandTab === '5GHz' ? btnActive : btnOutlineSm} whitespace-nowrap flex-shrink-0`}
             >
               5 ГГц (Каналы 36–165)
             </button>
@@ -612,13 +631,13 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
                 </p>
               </div>
 
-              {/* Кнопки переключения режима отображения */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="flex items-center gap-1.5">
+              {/* Кнопки переключения режима отображения: горизонтальная прокрутка в стороны как в верхнем меню */}
+              <div className="flex items-center gap-2 overflow-x-auto scroll-menu-x pb-1 w-full md:w-auto flex-nowrap">
+                <div className="flex items-center gap-1.5 flex-shrink-0">
                   <button
                     type="button"
                     onClick={() => setGroupBySsid(true)}
-                    className={groupBySsid ? btnActive : btnOutlineSm}
+                    className={`${groupBySsid ? btnActive : btnOutlineSm} whitespace-nowrap flex-shrink-0`}
                     title="Группировать сети с одинаковым именем SSID"
                   >
                     <Layers className="w-3.5 h-3.5" />
@@ -627,7 +646,7 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setGroupBySsid(false)}
-                    className={!groupBySsid ? btnActive : btnOutlineSm}
+                    className={`${!groupBySsid ? btnActive : btnOutlineSm} whitespace-nowrap flex-shrink-0`}
                     title="Показать каждую точку доступа BSSID отдельно"
                   >
                     <span>Все точки (BSSID)</span>
@@ -635,17 +654,17 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
                 </div>
 
                 {groupBySsid && (
-                  <div className="flex items-center gap-1 text-xs">
+                  <div className="flex items-center gap-1 text-xs flex-shrink-0">
                     <button
                       onClick={expandAllGroups}
-                      className={btnOutlineSm}
+                      className={`${btnOutlineSm} whitespace-nowrap flex-shrink-0`}
                       title="Развернуть все группы сетей"
                     >
                       Развернуть
                     </button>
                     <button
                       onClick={collapseAllGroups}
-                      className={btnOutlineSm}
+                      className={`${btnOutlineSm} whitespace-nowrap flex-shrink-0`}
                       title="Свернуть все группы"
                     >
                       Свернуть
@@ -655,31 +674,31 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
               </div>
             </div>
 
-            {/* Фильтры и строка поиска */}
+            {/* Фильтры и строка поиска: горизонтальная прокрутка кнопок в стороны */}
             <div className={`flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl border ${cardSubtle}`}>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`text-xs flex items-center gap-1 mr-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              <div className="flex items-center gap-2 overflow-x-auto scroll-menu-x pb-1 w-full sm:w-auto flex-nowrap">
+                <span className={`text-xs flex items-center gap-1 mr-1 flex-shrink-0 whitespace-nowrap ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                   <Filter className="w-3.5 h-3.5" />
                   Диапазон:
                 </span>
                 <button
                   type="button"
                   onClick={() => setListBandFilter('all')}
-                  className={listBandFilter === 'all' ? btnActive : btnOutlineSm}
+                  className={`${listBandFilter === 'all' ? btnActive : btnOutlineSm} whitespace-nowrap flex-shrink-0`}
                 >
                   Все (2.4 + 5G)
                 </button>
                 <button
                   type="button"
                   onClick={() => setListBandFilter('2.4GHz')}
-                  className={listBandFilter === '2.4GHz' ? btnActive : btnOutlineSm}
+                  className={`${listBandFilter === '2.4GHz' ? btnActive : btnOutlineSm} whitespace-nowrap flex-shrink-0`}
                 >
                   Только 2.4 ГГц
                 </button>
                 <button
                   type="button"
                   onClick={() => setListBandFilter('5GHz')}
-                  className={listBandFilter === '5GHz' ? btnActive : btnOutlineSm}
+                  className={`${listBandFilter === '5GHz' ? btnActive : btnOutlineSm} whitespace-nowrap flex-shrink-0`}
                 >
                   Только 5 ГГц
                 </button>
@@ -688,7 +707,7 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setOnlyMultiDevice(!onlyMultiDevice)}
-                  className={onlyMultiDevice ? btnActive : btnOutlineSm}
+                  className={`${onlyMultiDevice ? btnActive : btnOutlineSm} whitespace-nowrap flex-shrink-0`}
                   title="Показать только сети, которые раздаются 2 или более устройствами"
                 >
                   <Layers className="w-3.5 h-3.5" />
@@ -902,16 +921,18 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
                               </div>
 
                               {/* Технические атрибуты физического устройства */}
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2.5 text-xs font-mono">
-                                <div>
-                                  <span className="text-[10px] text-slate-500 block">BSSID (MAC-адрес):</span>
-                                  <div className="flex items-center gap-1.5 text-slate-200 mt-0.5">
-                                    <span className="font-semibold text-cyan-300">{device.bssid}</span>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 pt-2.5 text-xs font-mono">
+                                <div className="min-w-0">
+                                  <span className="text-[10px] text-slate-400 block font-sans">BSSID (MAC-адрес):</span>
+                                  <div className="flex items-center gap-1.5 text-slate-200 mt-0.5 min-w-0">
+                                    <span className="font-semibold text-cyan-300 tracking-tight text-xs truncate font-mono">
+                                      {device.bssid}
+                                    </span>
                                     <button
                                       type="button"
                                       onClick={() => handleCopyBssid(device.bssid)}
                                       title="Скопировать MAC-адрес устройства"
-                                      className="text-slate-400 hover:text-cyan-400 p-0.5 transition-colors"
+                                      className="text-slate-400 hover:text-cyan-400 p-0.5 transition-colors flex-shrink-0"
                                     >
                                       {copiedBssid === device.bssid ? (
                                         <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -922,24 +943,24 @@ export const WifiAnalyzerView: React.FC<WifiAnalyzerViewProps> = ({
                                   </div>
                                 </div>
 
-                                <div>
-                                  <span className="text-[10px] text-slate-500 block">Канал и частота:</span>
-                                  <span className="text-slate-200 block mt-0.5 font-semibold">
-                                    Канал {device.channel} ({device.frequency} МГц)
+                                <div className="min-w-0">
+                                  <span className="text-[10px] text-slate-400 block font-sans">Канал и частота:</span>
+                                  <span className="text-slate-200 block mt-0.5 font-semibold text-xs leading-tight">
+                                    Канал {device.channel} <span className="text-slate-400 font-normal">({device.frequency} МГц)</span>
                                   </span>
                                 </div>
 
-                                <div>
-                                  <span className="text-[10px] text-slate-500 block">Диапазон и полоса:</span>
-                                  <span className="text-slate-200 block mt-0.5">
+                                <div className="min-w-0">
+                                  <span className="text-[10px] text-slate-400 block font-sans">Диапазон и полоса:</span>
+                                  <span className="text-slate-200 block mt-0.5 text-xs leading-tight">
                                     {device.band} · {device.channelWidth}
                                   </span>
                                 </div>
 
-                                <div>
-                                  <span className="text-[10px] text-slate-500 block">Стандарт и шифрование:</span>
-                                  <span className="text-slate-200 block mt-0.5">
-                                    {device.standard} ({device.security})
+                                <div className="min-w-0">
+                                  <span className="text-[10px] text-slate-400 block font-sans">Стандарт и шифрование:</span>
+                                  <span className="text-slate-200 block mt-0.5 text-xs truncate leading-tight" title={`${device.standard} (${device.security})`}>
+                                    {device.standard} <span className="text-slate-400">({device.security})</span>
                                   </span>
                                 </div>
                               </div>
