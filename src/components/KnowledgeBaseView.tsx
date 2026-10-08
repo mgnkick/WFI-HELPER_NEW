@@ -53,12 +53,29 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
     }
   };
 
-  const filteredTerms = TERMS_KNOWLEDGE.filter(
-    t =>
+  const [categoryFilter, setCategoryFilter] = useState<'all' | 'wifi' | 'hardware' | 'cellular' | 'physics'>('all');
+
+  const filteredTerms = TERMS_KNOWLEDGE.filter(t => {
+    const matchesSearch =
       t.term.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.simpleExplanation.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.shortName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      t.shortName.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!matchesSearch) return false;
+
+    if (categoryFilter === 'cellular') {
+      return ['lte_5g', 'carrier_aggregation', 'vowifi', 'cellular_rsrp_sinr'].includes(t.id);
+    }
+    if (categoryFilter === 'hardware') {
+      return ['mesh_backhaul', 'repeaters_vs_ap', 'tx_power_asymmetry', 'bufferbloat_sqm', 'bssid_vs_ssid', 'ssid_bssid'].includes(t.id);
+    }
+    if (categoryFilter === 'physics') {
+      return ['wall_attenuation', 'beamforming', 'rssi', 'dfs_channels', 'jitter', 'packet_loss', 'tx_power_asymmetry'].includes(t.id);
+    }
+    if (categoryFilter === 'wifi') {
+      return ['bands_24_5', 'link_speed', 'ping', 'bssid_vs_ssid', 'dfs_channels', 'beamforming', 'channel_width', 'mesh_backhaul', 'repeaters_vs_ap'].includes(t.id);
+    }
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -117,6 +134,84 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
 
       {/* 2. СПИСОК ТЕРМИНОВ (АККОРДЕОН) */}
       <div className="space-y-3">
+        {/* Фильтры категорий */}
+        <div className="flex flex-wrap items-center gap-1.5 pb-1">
+          <button
+            onClick={() => setCategoryFilter('all')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+              categoryFilter === 'all'
+                ? isDark
+                  ? 'bg-white text-zinc-950 border-white font-bold'
+                  : 'bg-zinc-900 text-white border-zinc-900 font-bold'
+                : isDark
+                  ? 'border-zinc-800 text-zinc-400 hover:text-white'
+                  : 'border-zinc-300 text-zinc-600 hover:text-zinc-900'
+            }`}
+          >
+            Все темы ({TERMS_KNOWLEDGE.length})
+          </button>
+
+          <button
+            onClick={() => setCategoryFilter('hardware')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+              categoryFilter === 'hardware'
+                ? isDark
+                  ? 'bg-white text-zinc-950 border-white font-bold'
+                  : 'bg-zinc-900 text-white border-zinc-900 font-bold'
+                : isDark
+                  ? 'border-zinc-800 text-zinc-400 hover:text-white'
+                  : 'border-zinc-300 text-zinc-600 hover:text-zinc-900'
+            }`}
+          >
+            Оборудование и Mesh
+          </button>
+
+          <button
+            onClick={() => setCategoryFilter('wifi')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+              categoryFilter === 'wifi'
+                ? isDark
+                  ? 'bg-white text-zinc-950 border-white font-bold'
+                  : 'bg-zinc-900 text-white border-zinc-900 font-bold'
+                : isDark
+                  ? 'border-zinc-800 text-zinc-400 hover:text-white'
+                  : 'border-zinc-300 text-zinc-600 hover:text-zinc-900'
+            }`}
+          >
+            Wi‑Fi эфир
+          </button>
+
+          <button
+            onClick={() => setCategoryFilter('cellular')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+              categoryFilter === 'cellular'
+                ? isDark
+                  ? 'bg-white text-zinc-950 border-white font-bold'
+                  : 'bg-zinc-900 text-white border-zinc-900 font-bold'
+                : isDark
+                  ? 'border-zinc-800 text-zinc-400 hover:text-white'
+                  : 'border-zinc-300 text-zinc-600 hover:text-zinc-900'
+            }`}
+          >
+            Мобильный интернет (4G/5G)
+          </button>
+
+          <button
+            onClick={() => setCategoryFilter('physics')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+              categoryFilter === 'physics'
+                ? isDark
+                  ? 'bg-white text-zinc-950 border-white font-bold'
+                  : 'bg-zinc-900 text-white border-zinc-900 font-bold'
+                : isDark
+                  ? 'border-zinc-800 text-zinc-400 hover:text-white'
+                  : 'border-zinc-300 text-zinc-600 hover:text-zinc-900'
+            }`}
+          >
+            Физика радиоэфира и стены
+          </button>
+        </div>
+
         {filteredTerms.map(item => {
           const isOpened = expandedId === item.id;
           return (

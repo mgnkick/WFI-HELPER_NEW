@@ -10,7 +10,12 @@ import {
   ShieldCheck,
   Zap,
   PlusCircle,
-  X
+  X,
+  WifiOff,
+  Smartphone,
+  Settings,
+  HelpCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { CurrentWifiMetrics, SpeedTestRun } from '../types/wifi';
 import { WifiAccuracyDisclaimer } from './WifiAccuracyDisclaimer';
@@ -35,6 +40,32 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
   onClearHistory,
 }) => {
   const { isDark, cardBg, cardSubtle, btnOutline, btnOutlineSm, btnActive, inputClass } = useTheme();
+
+  // Напоминание об отсутствии Wi-Fi и выбор мобильной сети
+  const [useCellularConfirmed, setUseCellularConfirmed] = useState<boolean>(false);
+  const [showWifiHelpModal, setShowWifiHelpModal] = useState<boolean>(false);
+  const [simulatedNoWifi, setSimulatedNoWifi] = useState<boolean>(false);
+
+  // Определение отсутствия подключения к Wi-Fi
+  const isNoWifi = simulatedNoWifi || (
+    !wifi.ssid ||
+    wifi.ssid === 'Не подключено' ||
+    wifi.linkSpeedTxMbps === 0 ||
+    wifi.wifiConnected === false ||
+    wifi.usingMobileInternet
+  );
+
+  const handleOpenWifiSettings = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await WifiHelper.openWifiSettings();
+        return;
+      } catch (e) {
+        console.warn('Native openWifiSettings fallback', e);
+      }
+    }
+    setShowWifiHelpModal(true);
+  };
 
   // Ключ для принудительной перезагрузки встроенного фрейма
   const [iframeKey, setIframeKey] = useState<number>(1);
@@ -124,7 +155,73 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* 0. НАПОМИНАНИЕ: УСТРОЙСТВО НЕ ПОДКЛЮЧЕНО К WI-FI */}
+      {isNoWifi && !useCellularConfirmed && (
+        <div className={`rounded-3xl p-5 border transition-all ${
+          isDark
+            ? 'bg-amber-950/25 border-amber-500/50 text-amber-200'
+            : 'bg-amber-50 border-amber-300 text-amber-900 shadow-sm'
+        }`}>
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center flex-shrink-0 text-amber-500 shadow-sm">
+              <WifiOff className="w-5 h-5" />
+            </div>
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-bold text-sm sm:text-base flex items-center gap-2">
+                  Устройство не подключено к Wi‑Fi
+                </h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  Мобильная сеть
+                </span>
+              </div>
+              <p className="text-xs leading-relaxed opacity-90">
+                Обнаружено мобильное соединение (LTE/5G) либо беспроводная сеть отключена. Замер скорости израсходует трафик вашего сотового тарифа (около 40–80 МБ). Вы можете подключиться к домашнему Wi‑Fi для проверки тарифа провайдера, либо продолжить через сотовую связь.
+              </p>
+              <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                <button
+                  onClick={handleOpenWifiSettings}
+                  className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-zinc-950 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Подключиться к Wi‑Fi</span>
+                </button>
+                <button
+                  onClick={() => setUseCellularConfirmed(true)}
+                  className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${
+                    isDark
+                      ? 'border-white text-white hover:bg-white/10'
+                      : 'border-zinc-900 text-zinc-900 hover:bg-zinc-900/10'
+                  }`}
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>Продолжить через мобильную сеть</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Индикатор подтвержденного мобильного соединения */}
+      {isNoWifi && useCellularConfirmed && (
+        <div className={`rounded-2xl p-3 px-4 flex items-center justify-between gap-2 text-xs border ${
+          isDark ? 'bg-zinc-900/90 border-zinc-800 text-zinc-300' : 'bg-zinc-100 border-zinc-300 text-zinc-700'
+        }`}>
+          <div className="flex items-center gap-2">
+            <Smartphone className="w-4 h-4 text-cyan-400" />
+            <span>Замер выполняется через <strong>мобильную сеть передачи данных (LTE/5G)</strong></span>
+          </div>
+          <button
+            onClick={handleOpenWifiSettings}
+            className="text-[11px] underline opacity-80 hover:opacity-100 cursor-pointer whitespace-nowrap"
+          >
+            Подключить Wi‑Fi
+          </button>
+        </div>
+      )}
+
       {/* 1. Блок верхних отдельных кнопок внешних ссылок (Яндекс и 2IP) */}
       <div className={`${cardBg} rounded-3xl p-5 sm:p-6 transition-colors`}>
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -189,7 +286,7 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
                     : 'border-zinc-900/50 text-zinc-900 bg-zinc-900/10'
                 }`}>
                   <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isDark ? 'bg-white' : 'bg-zinc-900'}`} />
-                  Встроено в приложение
+                  Встроено
                 </span>
               </div>
               <p className={`text-[11px] hidden sm:block ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
@@ -221,33 +318,42 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
           </div>
         </div>
 
-        {/* Область самого встроенного окна */}
-        <div className={`relative w-full h-[60vh] min-h-[380px] max-h-[720px] landscape:h-[72vh] landscape:min-h-[290px] flex-1 overflow-hidden ${isDark ? 'bg-zinc-950' : 'bg-zinc-100'}`}>
-          {isIframeLoading && (
-            <div className={`absolute inset-0 z-10 backdrop-blur-sm flex flex-col items-center justify-center gap-3 ${
-              isDark ? 'bg-zinc-950/80 text-zinc-300' : 'bg-white/80 text-zinc-700'
-            }`}>
-              <RefreshCw className="w-8 h-8 animate-spin" />
-              <p className="text-sm font-medium">Загрузка Яндекс Интернетометра...</p>
-              <p className="text-xs font-mono opacity-70">Подключение безопасного фрейма</p>
-            </div>
-          )}
+        {/* Область самого встроенного окна: увеличенный размер видимой области + боковые отступы для скролла */}
+        <div className={`relative w-full py-2 px-3 sm:px-4 flex flex-col items-center ${isDark ? 'bg-zinc-950/60' : 'bg-zinc-100/60'}`}>
+          <div className="w-full flex items-center justify-between text-[10px] text-zinc-500 px-1 mb-1 font-mono select-none">
+            <span>← Край для скролла страницы</span>
+            <span>Край для скролла страницы →</span>
+          </div>
 
-          <iframe
-            key={iframeKey}
-            ref={iframeRef}
-            name="yandex_meter_frame"
-            src="/yandex-meter.html"
-            title="Яндекс Интернетометр"
-            className="w-full h-full border-0 bg-transparent"
-            onLoad={() => {
-              setIsIframeLoading(false);
-              try {
-                iframeRef.current?.contentWindow?.postMessage({ theme: isDark ? 'dark' : 'light' }, '*');
-              } catch (e) {}
-            }}
-            allow="fullscreen; clipboard-read; clipboard-write"
-          />
+          <div className={`relative w-full h-[740px] sm:h-[780px] rounded-2xl overflow-hidden border transition-all ${
+            isDark ? 'border-zinc-800 bg-zinc-950 shadow-inner' : 'border-zinc-300 bg-white shadow-inner'
+          }`}>
+            {isIframeLoading && (
+              <div className={`absolute inset-0 z-10 backdrop-blur-sm flex flex-col items-center justify-center gap-3 ${
+                isDark ? 'bg-zinc-950/80 text-zinc-300' : 'bg-white/80 text-zinc-700'
+              }`}>
+                <RefreshCw className="w-8 h-8 animate-spin" />
+                <p className="text-sm font-medium">Загрузка Яндекс Интернетометра...</p>
+                <p className="text-xs font-mono opacity-70">Подключение безопасного фрейма</p>
+              </div>
+            )}
+
+            <iframe
+              key={iframeKey}
+              ref={iframeRef}
+              name="yandex_meter_frame"
+              src="/yandex-meter.html"
+              title="Яндекс Интернетометр"
+              className="w-full h-full border-0 bg-transparent block"
+              onLoad={() => {
+                setIsIframeLoading(false);
+                try {
+                  iframeRef.current?.contentWindow?.postMessage({ theme: isDark ? 'dark' : 'light' }, '*');
+                } catch (e) {}
+              }}
+              allow="fullscreen; clipboard-read; clipboard-write"
+            />
+          </div>
         </div>
 
         {/* Подвал встроенного окна */}
@@ -507,6 +613,62 @@ export const SpeedtestDashboard: React.FC<SpeedtestDashboardProps> = ({
               className="w-full h-full border-0"
               allow="fullscreen; clipboard-read; clipboard-write"
             />
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно подключения к Wi-Fi */}
+      {showWifiHelpModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
+          <div className={`${cardBg} rounded-3xl max-w-md w-full p-6 shadow-2xl border ${isDark ? 'border-zinc-800' : 'border-zinc-200'} space-y-4`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center border border-amber-500/30">
+                  <WifiOff className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className={`font-bold text-base ${isDark ? 'text-white' : 'text-zinc-900'}`}>Подключение к Wi‑Fi</h3>
+                  <p className="text-xs text-zinc-500">Системные настройки сети</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowWifiHelpModal(false)}
+                className={btnOutlineSm}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className={`p-4 rounded-2xl text-xs space-y-2.5 ${cardSubtle}`}>
+              <p className={`font-semibold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                Для точного замера домашнего интернета:
+              </p>
+              <ol className="list-decimal list-inside space-y-1.5 opacity-90 leading-relaxed">
+                <li>Откройте <strong>«Настройки»</strong> на вашем телефоне или компьютере.</li>
+                <li>Перейдите в раздел <strong>«Wi‑Fi»</strong> (или «Сеть и интернет»).</li>
+                <li>Включите Wi‑Fi и выберите сеть вашего роутера (рекомендуется <strong>5 ГГц</strong>).</li>
+                <li>После подключения вернитесь в приложение — замер обновится автоматически.</li>
+              </ol>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-1">
+              <button
+                onClick={() => {
+                  setShowWifiHelpModal(false);
+                  setUseCellularConfirmed(true);
+                }}
+                className={btnOutline}
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Продолжить через LTE/5G</span>
+              </button>
+              <button
+                onClick={() => setShowWifiHelpModal(false)}
+                className={btnActive}
+              >
+                Понятно
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -152,6 +152,25 @@ public class WifiHelperPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void openWifiSettings(PluginCall call) {
+        try {
+            Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            call.resolve();
+        } catch (Exception e) {
+            try {
+                Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(intent);
+                call.resolve();
+            } catch (Exception e2) {
+                call.reject("Не удалось открыть настройки Wi-Fi: " + e2.getMessage());
+            }
+        }
+    }
+
+    @PluginMethod
     public void openInAppMeter(PluginCall call) {
         String url = call.getString("url", "https://yandex.ru/internet/");
         if (getActivity() == null) {

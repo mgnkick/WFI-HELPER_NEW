@@ -176,10 +176,10 @@ function MainApp() {
         onOpenDonate={() => setIsDonateOpen(true)}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-3 sm:py-6 landscape:py-2.5 transition-all">
+      <main className="flex-1 max-w-[540px] sm:max-w-[560px] w-full mx-auto px-3 sm:px-4 py-3 sm:py-5 transition-all">
         {/* Предупреждение о включенном в системе VPN (появляется только если VPN активен) */}
         {wifiMetrics.vpn.isActive && (
-          <div className="mb-4 sm:mb-6">
+          <div className="mb-4 sm:mb-5">
             <VpnBanner vpn={wifiMetrics.vpn} onOpenSettings={handleOpenVpnSettings} />
           </div>
         )}
@@ -238,14 +238,14 @@ function MainApp() {
         onClose={() => setIsDonateOpen(false)}
       />
 
-      <footer className={`border-t py-4 px-6 text-center text-xs transition-colors ${
+      <footer className={`border-t py-4 px-4 text-center text-xs transition-colors ${
         isDark ? 'border-zinc-800 bg-zinc-900/90 text-zinc-400' : 'border-zinc-200 bg-white/90 text-zinc-600'
       }`}>
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="max-w-[540px] sm:max-w-[560px] mx-auto flex flex-col items-center justify-between gap-2.5">
           <span>Wi-Fi Эксперт • Диагностика и анализатор Wi‑Fi</span>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-2.5">
             <span className={`font-mono text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-              Фоновое автообновление сетей каждые 6 сек
+              Книжная ориентация интерфейса
             </span>
             <button
               onClick={() => setIsDonateOpen(true)}

@@ -30,14 +30,14 @@ export const Header: React.FC<HeaderProps> = ({
   const { isDark, toggleTheme } = useTheme();
 
   return (
-    <header className={`sticky top-0 z-40 backdrop-blur-md transition-colors w-full ${
+    <header className={`sticky top-0 z-40 backdrop-blur-md transition-colors w-full pt-[max(env(safe-area-inset-top,0px),14px)] sm:pt-4 ${
       isDark
         ? 'bg-zinc-900/95 border-b border-zinc-800 text-zinc-100'
         : 'bg-white/95 border-b border-zinc-200 text-zinc-900 shadow-sm'
     }`}>
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 landscape:py-1.5 transition-all">
-        {/* Верхняя строка: Логотип, текущий статус сети и переключатель темы */}
-        <div className="flex items-center justify-between gap-2 sm:gap-3">
+      <div className="max-w-[540px] sm:max-w-[560px] mx-auto px-3 sm:px-4 pt-1 sm:pt-1.5 pb-2 sm:pb-2.5 transition-all">
+        {/* Верхняя строка: Логотип, текущий статус сети и переключатель темы (спущен ниже полосы индикаторов) */}
+        <div className="flex items-center justify-between gap-2 sm:gap-3 pt-1">
           {/* Бренд */}
           <div className="flex items-center gap-2 sm:gap-2.5">
             <div className={`w-8 h-8 sm:w-10 sm:h-10 landscape:w-7 landscape:h-7 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 transition-all ${

@@ -49,6 +49,49 @@ async function startServer() {
     res.sendFile(meterPath);
   });
 
+  // Быстрый эндпоинт пинга
+  app.get('/api/speedtest/ping', (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.status(200).send('pong');
+  });
+
+  // Высокоскоростной многопоточный эндпоинт замера входящей скорости (до 100 МБ)
+  const sharedDownloadChunk = Buffer.alloc(256 * 1024, 'A');
+  app.get('/api/speedtest/download', (req, res) => {
+    const size = Math.min(100 * 1024 * 1024, Math.max(1024 * 1024, parseInt(req.query.bytes as string) || 35 * 1024 * 1024));
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Length', size.toString());
+
+    let sent = 0;
+    function sendNext() {
+      while (sent < size) {
+        const remaining = size - sent;
+        const currentChunk = remaining < sharedDownloadChunk.length
+          ? sharedDownloadChunk.subarray(0, remaining)
+          : sharedDownloadChunk;
+        sent += currentChunk.length;
+        const canContinue = res.write(currentChunk);
+        if (!canContinue) {
+          res.once('drain', sendNext);
+          return;
+        }
+      }
+      res.end();
+    }
+    sendNext();
+  });
+
+  // Высокоскоростной эндпоинт замера исходящей скорости
+  app.post('/api/speedtest/upload', express.raw({ type: '*/*', limit: '50mb' }), (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    const bytesReceived = req.body ? req.body.length : 0;
+    res.json({ received: bytesReceived, status: 'ok' });
+  });
+
   const isProduction = process.env.NODE_ENV === 'production';
   if (!isProduction) {
     const vite = await createViteServer({
