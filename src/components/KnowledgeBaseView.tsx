@@ -63,7 +63,7 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
     if (!matchesSearch) return false;
 
     if (categoryFilter === 'cellular') {
-      return ['lte_5g', 'carrier_aggregation', 'vowifi', 'cellular_rsrp_sinr'].includes(t.id);
+      return ['lte_5g', 'carrier_aggregation', 'cellular_rsrp_sinr'].includes(t.id);
     }
     if (categoryFilter === 'hardware') {
       return ['mesh_backhaul', 'repeaters_vs_ap', 'tx_power_asymmetry', 'bufferbloat_sqm', 'bssid_vs_ssid', 'ssid_bssid'].includes(t.id);
@@ -72,7 +72,7 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({
       return ['wall_attenuation', 'beamforming', 'rssi', 'dfs_channels', 'jitter', 'packet_loss', 'tx_power_asymmetry'].includes(t.id);
     }
     if (categoryFilter === 'wifi') {
-      return ['bands_24_5', 'link_speed', 'ping', 'bssid_vs_ssid', 'dfs_channels', 'beamforming', 'channel_width', 'mesh_backhaul', 'repeaters_vs_ap'].includes(t.id);
+      return ['bands_24_5', 'link_speed', 'ping', 'bssid_vs_ssid', 'dfs_channels', 'beamforming', 'channel_width', 'mesh_backhaul', 'repeaters_vs_ap', 'yandex_dns_certs'].includes(t.id);
     }
     return true;
   });
